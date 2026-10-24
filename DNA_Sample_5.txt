@@ -1,0 +1,29 @@
+# GeneForm DNA Export — Sample Profile 5
+# Format: rsID  chromosome  position  genotype
+# Generated: 2024-09-03 | Lab: VelocityGenome Lab
+
+rs1815739	11	66560624	TT     # ACTN3 — RR extreme power genotype
+rs4646994	17	61565892	DD    # ACE — DD high power allele
+rs17602729	1	115499698	AA    # AMPD1 — maximal ATP burst capacity
+rs2070744	7	150696111	TT    # NOS3 — high nitric oxide production
+rs1800255	2	189012775	AA    # COL3A1 — connective tissue variant
+rs699	1	230845794	AA     # AGT — muscle power signaling
+
+# Speed Modifiers
+rs6152	X	67545316	A      # AR — androgen sensitivity high
+rs2228570	12	47844974	Bb   # VDR — moderate vitamin D
+rs4290270	1	42925735	TT   # PRDM16 — fast-twitch enrichment
+
+# Neuromuscular
+rs4680	22	19951271	AA     # COMT — high dopamine (focus under pressure)
+rs6265	11	27679916	GG    # BDNF — baseline neuroplasticity
+rs1799971	6	154039662	AG  # OPRM1 — pain tolerance elevated
+
+# Sprint-Specific
+rs7799039	7	127881000	AA   # LEP — body composition lean
+rs1501299	4	951947	TT     # UCP2 — metabolic efficiency
+
+# Ancestry: West African (60%) | Caribbean (25%) | East African (15%)
+# Total SNPs analyzed: 698,332
+# Quality Score: 98.7%
+# Notes: Elite sprint genome. ACTN3 RR + ACE DD co-occurrence is rare (8% of population).

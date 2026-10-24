@@ -1,0 +1,24 @@
+# GeneForm DNA Export — Sample Profile 2
+# Format: rsID  chromosome  position  genotype
+# Generated: 2024-03-08 | Lab: HelixCore Genomics
+
+rs1815739	11	66560624	CT     # ACTN3 — RX power genotype
+rs1805086	2	190053663	KK     # MSTN — myostatin inhibited variant
+rs35767	12	102435392	19/19  # IGF1 — high growth factor CA repeat
+rs1800012	17	48259422	TT     # COL1A1 — Sp1 TT tendon risk allele
+rs6152	X	67545316	A      # AR — short CAG (high androgen sensitivity)
+rs17602729	1	115499698	AA    # AMPD1 — fast ATP genotype
+
+# Metabolic Markers
+rs4580704	3	12393125	CC     # PPARD — high oxidative capacity
+rs1800629	6	31543080	GG    # TNF-α — low inflammation
+rs2070744	7	150696111	TT    # NOS3 — NO production
+
+# Power Output Modifiers
+rs699	1	230845794	AA     # AGT — power signaling
+rs1042713	5	148206885	GG   # ADRB2 — beta-2 adrenergic response
+
+# Ancestry: West African (45%) | Caribbean (30%) | European (25%)
+# Total SNPs analyzed: 689,441
+# Quality Score: 97.9%
+# Notes: Exceptional strength genome. Top 6% power potential estimated.

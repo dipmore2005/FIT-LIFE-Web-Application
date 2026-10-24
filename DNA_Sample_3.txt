@@ -1,0 +1,25 @@
+# GeneForm DNA Export — Sample Profile 3
+# Format: rsID  chromosome  position  genotype
+# Generated: 2024-05-22 | Lab: BioGenesis Labs
+
+rs9939609	16	53820527	AA     # FTO — risk allele homozygous (obesity risk)
+rs7903146	10	112998590	TT    # TCF7L2 — T2D risk elevated
+rs429358	19	45411941	TC     # APOE — ε3/ε4 (elevated LDL risk)
+rs1800795	7	22766645	CC    # IL-6 — high inflammation allele
+rs2228570	12	47844974	bb    # VDR — low Vitamin D absorption
+rs1801282	3	12393125	CG    # PPARG — Pro12Ala insulin signaling
+
+# Athletic Markers
+rs1815739	11	66560624	CT    # ACTN3 — mixed fiber type
+rs4646994	17	61565892	DI    # ACE — intermediate
+rs8192678	4	23754776	AG    # PPARGC1A — moderate mitochondria
+
+# Cardiovascular Risk Panel
+rs5186	3	148459988	CC     # AGTR1 — blood pressure sensitivity
+rs2106261	10	17864736	AA   # ZFHX3 — atrial fibrillation risk
+rs2274223	5	152344673	GG  # PLCE1 — standard
+
+# Ancestry: South Asian (55%) | Middle Eastern (30%) | Central Asian (15%)
+# Total SNPs analyzed: 702,817
+# Quality Score: 96.1%
+# Notes: Multiple metabolic risk factors present. Exercise intervention highly recommended.

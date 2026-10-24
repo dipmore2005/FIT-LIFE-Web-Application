@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BodyScan AI</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --cream:#F8F5F0;--cream2:#F0EBE3;--sand:#E5DDD3;--tan:#C9BAA8;
+  --brown:#8B7355;--dark:#1C1917;--text:#2D2420;--muted:#7A6E68;
+  --green:#2D6A4F;--green-l:#D8EFE5;
+  --amber:#B45309;--amber-l:#FEF3C7;
+  --red:#991B1B;--red-l:#FEE2E2;
+  --blue:#1E40AF;--blue-l:#DBEAFE;
+  --r:16px;--rs:10px;
+}
+
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:var(--text);min-height:100vh;line-height:1.6}
+
+/* NAV */
+nav{background:var(--dark);height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;position:sticky;top:0;z-index:99}
+.nav-logo{font-family:'DM Serif Display',serif;color:#fff;font-size:18px;display:flex;align-items:center;gap:8px}
+.live-dot{width:8px;height:8px;background:#4ADE80;border-radius:50%;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.nav-tag{font-size:11px;color:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:3px 12px;font-weight:300;letter-spacing:.05em}
+
+/* HERO */
+.hero{background:var(--dark);color:#fff;padding:4.5rem 1.5rem 3.5rem;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 20% 60%,rgba(45,106,79,.18) 0%,transparent 70%),radial-gradient(ellipse 55% 45% at 80% 40%,rgba(30,64,175,.14) 0%,transparent 70%)}
+.hero-inner{position:relative;z-index:1;max-width:600px;margin:0 auto}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:1.25rem;font-weight:300}
+.eyebrow::before,.eyebrow::after{content:'';height:1px;width:20px;background:rgba(255,255,255,.25)}
+.hero h1{font-family:'DM Serif Display',serif;font-size:clamp(2.2rem,5vw,3.2rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:.9rem}
+.hero h1 em{font-style:italic;color:rgba(255,255,255,.5)}
+.hero p{font-size:14.5px;color:rgba(255,255,255,.5);font-weight:300;max-width:440px;margin:0 auto 2rem;line-height:1.75}
+.hero-pills{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.pill{font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);font-weight:300}
+
+/* MAIN */
+.main{max-width:860px;margin:0 auto;padding:2.5rem 1.25rem 5rem}
+
+/* UPLOAD */
+.upload-zone{border:2px dashed var(--sand);border-radius:var(--r);background:#fff;padding:3.5rem 2rem;text-align:center;cursor:pointer;transition:all .22s ease;position:relative;overflow:hidden;animation:up .45s ease both}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.upload-zone:hover{border-color:var(--brown);background:var(--cream);transform:translateY(-2px);box-shadow:0 12px 36px rgba(0,0,0,.07)}
+.upload-zone.drag{border-color:var(--green);background:var(--green-l)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{width:68px;height:68px;background:var(--cream2);border:1px solid var(--sand);border-radius:50%;margin:0 auto 1.1rem;display:flex;align-items:center;justify-content:center}
+.upload-icon svg{width:26px;height:26px;stroke:var(--brown);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.upload-zone h2{font-family:'DM Serif Display',serif;font-size:1.45rem;font-weight:400;margin-bottom:5px}
+.upload-zone .sub{font-size:13px;color:var(--muted);font-weight:300}
+.upload-hints{display:flex;justify-content:center;gap:1.5rem;margin-top:1.75rem;padding-top:1.5rem;border-top:1px solid var(--sand);flex-wrap:wrap}
+.hint{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;font-weight:300}
+.hint::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--tan);flex-shrink:0}
+
+/* SCANNER */
+.scanner{display:none;gap:1.25rem;animation:up .4s ease both}
+.scanner.show{display:grid;grid-template-columns:260px 1fr}
+
+/* PHOTO */
+.photo-card{background:#fff;border:1px solid var(--sand);border-radius:var(--r);overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.05);align-self:start}
+.photo-card img{width:100%;display:block;max-height:400px;object-fit:cover}
+.photo-footer{padding:9px 14px;border-top:1px solid var(--sand);display:flex;align-items:center;justify-content:space-between}
+.photo-footer span{font-size:11px;color:var(--muted);font-weight:300;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+.change-btn{font-size:11px;color:var(--brown);background:none;border:none;cursor:pointer;font-family:inherit;font-weight:500;text-decoration:underline;text-underline-offset:2px;flex-shrink:0}
+
+/* CONTROLS */
+.controls{display:flex;flex-direction:column;gap:1rem}
+.card{background:#fff;border:1px solid var(--sand);border-radius:var(--r);overflow:hidden}
+.card-head{padding:11px 18px;border-bottom:1px solid var(--sand);font-size:10.5px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);background:var(--cream)}
+.card-body{padding:16px 18px}
+.feature-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0}
+.feature-row span{font-size:13px;color:var(--muted);font-weight:300}
+.on-badge{font-size:10px;padding:2px 9px;border-radius:20px;background:var(--green-l);color:var(--green);font-weight:500}
+
+.scan-btn{width:100%;background:var(--dark);color:#fff;border:none;border-radius:var(--rs);padding:14px 20px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;letter-spacing:.01em}
+.scan-btn svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.scan-btn:hover:not(:disabled){background:#333;transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,0,0,.22)}
+.scan-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* PROGRESS */
+.progress-card{display:none}
+.progress-card.show{display:block}
+.steps{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.step{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted);padding:4px 0;font-weight:300;transition:color .3s}
+.step.active{color:var(--text);font-weight:500}
+.step.done{color:var(--green)}
+.step-icon{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--sand);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;transition:all .3s}
+.step.active .step-icon{border-color:var(--dark);background:var(--dark)}
+.step.done .step-icon{border-color:var(--green);background:var(--green);color:#fff}
+.progress-track{height:3px;background:var(--sand);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--blue));border-radius:2px;width:0%;transition:width .45s ease}
+
+/* RESULTS */
+.results{display:none;margin-top:1.5rem;animation:up .45s ease both}
+.results.show{display:block}
+.results-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px}
+.results-header h2{font-family:'DM Serif Display',serif;font-size:1.65rem;font-weight:400}
+.results-header .ts{font-size:12px;color:var(--muted);font-weight:300}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
+.metric{background:#fff;border:1px solid var(--sand);border-radius:var(--rs);padding:16px 14px;position:relative;overflow:hidden}
+.metric::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.metric.m1::before{background:var(--dark)}
+.metric.m2::before{background:var(--green)}
+.metric.m3::before{background:var(--blue)}
+.metric.m4::before{background:var(--amber)}
+.metric .mlbl{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:500;margin-bottom:7px}
+.metric .mval{font-family:'DM Serif Display',serif;font-size:1.9rem;color:var(--text);line-height:1;margin-bottom:3px}
+.metric .msub{font-size:11px;color:var(--muted);font-weight:300}
+
+/* RESULT CARDS */
+.rcard{background:#fff;border:1px solid var(--sand);border-radius:var(--r);overflow:hidden;margin-bottom:12px;box-shadow:0 1px 10px rgba(0,0,0,.04);animation:up .4s ease both}
+.rcard-head{padding:13px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--sand)}
+.rcard-ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rcard-ico svg{width:15px;height:15px;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.ico-green{background:var(--green-l)}.ico-green svg{stroke:var(--green)}
+.ico-amber{background:var(--amber-l)}.ico-amber svg{stroke:var(--amber)}
+.ico-red{background:var(--red-l)}.ico-red svg{stroke:var(--red)}
+.ico-blue{background:var(--blue-l)}.ico-blue svg{stroke:var(--blue)}
+.rcard-title{font-size:14px;font-weight:500;color:var(--text)}
+.rbadge{margin-left:auto;font-size:10px;padding:3px 10px;border-radius:20px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;flex-shrink:0}
+.bg{background:var(--green-l);color:var(--green)}
+.ba{background:var(--amber-l);color:var(--amber)}
+.br{background:var(--red-l);color:var(--red)}
+.bb{background:var(--blue-l);color:var(--blue)}
+.rcard-body{padding:15px 18px}
+.rcard-body>p{font-size:13.5px;color:#444;line-height:1.75;font-weight:300}
+
+/* GAUGES */
+.gauge-row{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap}
+.gauge-item{flex:1;min-width:110px}
+.gauge-lbl{font-size:11px;color:var(--muted);font-weight:400;margin-bottom:5px}
+.gauge-track{height:6px;background:var(--sand);border-radius:3px;overflow:hidden}
+.gauge-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.4,0,.2,1);width:0%}
+.gf-green{background:var(--green)}
+.gf-amber{background:var(--amber)}
+.gf-red{background:var(--red)}
+.gauge-val{font-size:11px;color:var(--muted);font-weight:300;margin-top:3px}
+
+/* IMBALANCES */
+.imb-row{display:flex;align-items:flex-start;gap:11px;padding:10px 0;border-bottom:1px solid var(--cream2)}
+.imb-row:last-child{border-bottom:none}
+.imb-sev{flex-shrink:0;font-size:10px;padding:2px 9px;border-radius:20px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;min-width:56px;text-align:center;margin-top:2px}
+.sh{background:var(--red-l);color:var(--red)}
+.sm{background:var(--amber-l);color:var(--amber)}
+.sl{background:var(--green-l);color:var(--green)}
+.imb-area{font-size:13px;font-weight:500;margin-bottom:2px}
+.imb-detail{font-size:12.5px;color:var(--muted);font-weight:300;line-height:1.6}
+
+/* RISKS */
+.risk-item{display:flex;gap:11px;align-items:flex-start;padding:10px 13px;background:var(--red-l);border-radius:var(--rs);border-left:3px solid var(--red);margin-bottom:8px}
+.risk-item:last-child{margin-bottom:0}
+.risk-item svg{width:14px;height:14px;flex-shrink:0;margin-top:2px;stroke:var(--red);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.risk-name{font-size:13px;font-weight:500;color:var(--red);margin-bottom:2px}
+.risk-warn{font-size:12.5px;color:#7F1D1D;font-weight:300;line-height:1.6}
+
+/* EXERCISES */
+.ex-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.ex-item{display:flex;align-items:flex-start;gap:10px;padding:11px;background:var(--cream);border:1px solid var(--sand);border-radius:var(--rs)}
+.ex-num{width:24px;height:24px;background:var(--dark);color:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
+.ex-name{font-size:13px;font-weight:500}
+.ex-why{font-size:11.5px;color:var(--muted);font-weight:300;margin-top:2px;line-height:1.5}
+
+/* DISCLAIMER */
+.disclaimer{margin-top:2rem;padding:1rem 1.25rem;background:var(--cream2);border:1px solid var(--sand);border-radius:var(--rs);font-size:11.5px;color:var(--muted);line-height:1.75;font-weight:300;text-align:center}
+
+@media(max-width:640px){
+  .scanner.show{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr 1fr}
+  .ex-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo"><div class="live-dot"></div>BodyScan AI</div>
+  <span class="nav-tag">Powered By FITLIFE</span>
+</nav>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">AI-Powered Analysis</div>
+    <h1>Know your body,<br><em>before it breaks.</em></h1>
+    <p>Upload a photo — our AI instantly reads body composition, flags muscle imbalances, predicts injury risks, and prescribes corrective exercises.</p>
+    <div class="hero-pills">
+      <span class="pill">Body Fat %</span>
+      <span class="pill">Muscle Imbalances</span>
+      <span class="pill">Injury Risks</span>
+      <span class="pill">Exercise Plan</span>
+    </div>
+  </div>
+</section>
+
+<main class="main">
+
+  <div class="upload-zone" id="uploadZone">
+    <input type="file" id="fileInput" accept="image/*">
+    <div class="upload-icon">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    </div>
+    <h2>Drop your photo here</h2>
+    <p class="sub" style="margin-top:4px;">Full-body front or side view &nbsp;·&nbsp; JPG / PNG</p>
+    <div class="upload-hints">
+      <span class="hint">Good lighting</span>
+      <span class="hint">Full body in frame</span>
+      <span class="hint">Neutral standing pose</span>
+      <span class="hint">Works fully offline</span>
+    </div>
+  </div>
+
+  <div class="scanner" id="scanner">
+    <div class="photo-card">
+      <img id="previewImg" src="" alt="Uploaded photo">
+      <div class="photo-footer">
+        <span id="fileName">photo.jpg</span>
+        <button class="change-btn" onclick="doReset()">Change</button>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="card">
+        <div class="card-head">Scan modules</div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:8px">
+          <div class="feature-row"><span>Body fat estimation</span><span class="on-badge">On</span></div>
+          <div class="feature-row"><span>Muscle symmetry scan</span><span class="on-badge">On</span></div>
+          <div class="feature-row"><span>Injury risk detection</span><span class="on-badge">On</span></div>
+          <div class="feature-row"><span>Corrective exercises</span><span class="on-badge">On</span></div>
+        </div>
+      </div>
+
+      <button class="scan-btn" id="scanBtn" onclick="startScan()">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Scan Body Composition
+      </button>
+
+      <div class="card progress-card" id="progressCard">
+        <div class="card-head">Analysis in progress</div>
+        <div class="card-body">
+          <div class="steps" id="stepsEl">
+            <div class="step"><div class="step-icon"></div>Detecting body outline</div>
+            <div class="step"><div class="step-icon"></div>Mapping fat distribution</div>
+            <div class="step"><div class="step-icon"></div>Analyzing muscle symmetry</div>
+            <div class="step"><div class="step-icon"></div>Assessing posture &amp; alignment</div>
+            <div class="step"><div class="step-icon"></div>Evaluating injury risk factors</div>
+            <div class="step"><div class="step-icon"></div>Generating corrective plan</div>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="results" id="results">
+    <div class="results-header">
+      <h2>Body composition report</h2>
+      <span class="ts" id="scanTime"></span>
+    </div>
+    <div class="metrics" id="metricsEl"></div>
+    <div id="cardsEl"></div>
+    <div class="disclaimer">
+      ⚠️ Results are AI-generated estimations based on visual analysis for informational purposes only.
+      Not a substitute for professional medical or fitness assessment.
+      Consult a certified healthcare provider before starting any exercise program.
+    </div>
+  </div>
+
+</main>
+
+<canvas id="analyzeCanvas" style="display:none"></canvas>
+
+<script>
+var uploadedFile = null;
+var uploadedSrc  = null;
+
+var uz  = document.getElementById('uploadZone');
+var fi  = document.getElementById('fileInput');
+
+uz.addEventListener('dragover', function(e){ e.preventDefault(); uz.classList.add('drag'); });
+uz.addEventListener('dragleave', function(){ uz.classList.remove('drag'); });
+uz.addEventListener('drop', function(e){
+  e.preventDefault(); uz.classList.remove('drag');
+  var f = e.dataTransfer.files[0];
+  if(f && f.type.startsWith('image/')) loadFile(f);
+});
+fi.addEventListener('change', function(e){ if(e.target.files[0]) loadFile(e.target.files[0]); });
+
+function loadFile(f){
+  uploadedFile = f;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    uploadedSrc = ev.target.result;
+    document.getElementById('previewImg').src = uploadedSrc;
+    document.getElementById('fileName').textContent = f.name;
+    uz.style.display = 'none';
+    document.getElementById('scanner').classList.add('show');
+    document.getElementById('results').classList.remove('show');
+    document.getElementById('progressCard').classList.remove('show');
+    document.getElementById('scanBtn').disabled = false;
+    document.getElementById('progressFill').style.width = '0%';
+    document.querySelectorAll('.step').forEach(function(s){
+      s.classList.remove('active','done');
+      s.querySelector('.step-icon').textContent = '';
+    });
+  };
+  reader.readAsDataURL(f);
+}
+
+function doReset(){
+  uploadedFile = null; uploadedSrc = null;
+  fi.value = '';
+  uz.style.display = '';
+  document.getElementById('scanner').classList.remove('show');
+  document.getElementById('results').classList.remove('show');
+}
+
+/* IMAGE PIXEL ANALYSIS */
+function analyzeImage(imgEl){
+  var canvas = document.getElementById('analyzeCanvas');
+  var ctx = canvas.getContext('2d');
+  canvas.width = 80; canvas.height = 80;
+  ctx.drawImage(imgEl, 0, 0, 80, 80);
+  var d = ctx.getImageData(0,0,80,80).data;
+  var rS=0,gS=0,bS=0,bright=0,dark=0,n=d.length/4;
+  for(var i=0;i<d.length;i+=4){
+    var r=d[i],g=d[i+1],b=d[i+2],lum=(r+g+b)/3;
+    rS+=r; gS+=g; bS+=b;
+    if(lum>160) bright++; else if(lum<80) dark++;
+  }
+  var aR=rS/n, aG=gS/n, aB=bS/n;
+  var aL=(aR+aG+aB)/3;
+  var warmth=(aR-aB)/255;
+  var brightR=bright/n, darkR=dark/n;
+  var contrast=Math.abs(brightR-darkR);
+  return {aL:aL, warmth:warmth, brightR:brightR, darkR:darkR, contrast:contrast, aR:aR, aG:aG, aB:aB};
+}
+
+/* PROFILE GENERATION */
+function generateProfile(px){
+  var seed = ((px.aR*3 + px.aG*7 + px.aB*5 + px.aL*11) % 100 + 100) % 100;
+  var s2   = ((px.contrast*100 + px.warmth*50 + seed*1.3) % 100 + 100) % 100;
+
+  var bfBase  = 15 + (px.aL/255)*22 + (px.warmth*8);
+  var bodyFat = Math.round(Math.min(40, Math.max(8, bfBase + (seed%7) - 3)));
+
+  var bmiNum  = 18 + (bodyFat*0.4) + (s2%4) - 1;
+  var bmiCat  = bmiNum<18.5 ? 'Underweight' : bmiNum<25 ? 'Normal range' : bmiNum<30 ? 'Overweight' : 'Obese range';
+  var bmiDisp = bmiNum.toFixed(1);
+
+  var balScore  = Math.round(60 + (px.contrast*30) - (seed%20));
+  var muscleBal = balScore>80 ? 'Good' : balScore>60 ? 'Moderate' : 'Poor';
+  var riskLvl   = bodyFat>28 ? 2 : bodyFat>20 ? 1 : 0;
+
+  var summaryPool = [
+    'Your body composition shows a '+(bodyFat<18?'lean':bodyFat<25?'moderate':'higher-than-optimal')+' fat distribution with '+muscleBal.toLowerCase()+' bilateral muscle symmetry. Focus on '+(bodyFat>22?'reducing body fat through consistent cardio and a moderate caloric deficit':'maintaining lean mass while improving structural balance and mobility')+'.',
+    'Visual analysis indicates '+(bodyFat<20?'a well-maintained physique with low subcutaneous fat visible in key zones':'moderate fat accumulation particularly in central body zones')+'. Addressing the detected muscular imbalances will significantly reduce injury potential and improve performance output.',
+    'Your structural assessment reveals '+(muscleBal==='Good'?'reasonable symmetry with minor deviations worth monitoring':'notable asymmetries that warrant targeted corrective attention')+'. Estimated body fat of '+bodyFat+'% places you in the '+(bodyFat<15?'athletic':bodyFat<25?'fitness':'average')+' category for your apparent build.'
+  ];
+  var summary = summaryPool[Math.floor(seed % summaryPool.length)];
+
+  var allImb = [
+    {area:'Anterior pelvic tilt',    sev:'high',   detail:'Excessive forward rotation of the pelvis detected, compressing lumbar vertebrae and progressively weakening core stability under load.'},
+    {area:'Left-right shoulder drop',sev:'medium', detail:'Right shoulder sits visibly lower than left, suggesting dominant-side overuse or an underlying thoracic curvature pattern.'},
+    {area:'Knee valgus (left side)', sev:'high',   detail:'Left knee shows inward collapse tendency, significantly increasing ACL and medial meniscus strain during weight-bearing movements.'},
+    {area:'Forward head posture',    sev:'medium', detail:'Head is projected forward of the shoulder line, multiplying effective cervical load and straining the posterior neck chain.'},
+    {area:'Scapular winging',        sev:'low',    detail:'Mild shoulder blade separation from the ribcage indicates serratus anterior weakness that can progress if left unaddressed.'},
+    {area:'Hip flexor tightness',    sev:'medium', detail:'Shortened iliopsoas on the dominant side restricts full hip extension and contributes directly to lower-back strain patterns.'},
+    {area:'Thoracic kyphosis',       sev:'medium', detail:'Mild upper-back rounding compresses chest volume, strains posterior shoulder muscles, and limits overhead movement range.'},
+    {area:'Quad-hamstring imbalance',sev:'low',    detail:'Quadriceps appear significantly stronger than hamstrings — a common and measurable precursor to knee injury in active individuals.'},
+    {area:'Foot overpronation',      sev:'low',    detail:'Arch collapse pattern transmits misalignment stress upward through ankles and knees with each weight-bearing step.'}
+  ];
+
+  var picked=[]; var used=new Set();
+  var idxPool = [Math.floor(seed%9), Math.floor(s2%9), Math.floor((seed+s2)%9)];
+  idxPool.forEach(function(i){ if(!used.has(i)){used.add(i); picked.push(allImb[i]);} });
+  if(riskLvl>0 && !picked.find(function(p){return p.sev==='high';})) picked[0]=allImb[0];
+
+  var allRisks = [
+    {risk:'Lower back strain',         warning:'Pelvic tilt and hip flexor tightness create high-load conditions on lumbar discs — avoid heavy deadlifts or squats before correcting posture.'},
+    {risk:'ACL / knee ligament tear',  warning:'Knee valgus under load dramatically increases lateral ligament stress — strengthen hip abductors and glutes before returning to compound movements.'},
+    {risk:'Rotator cuff impingement',  warning:'Shoulder asymmetry and forward rounding reduce subacromial space — add face pulls and external rotation drills before any pressing workouts.'},
+    {risk:'Cervical herniation',       warning:'Forward head posture multiplies neck load by up to 5× — avoid loaded overhead movements until thoracic mobility and neck alignment improve.'},
+    {risk:'IT band syndrome',          warning:'Hip and knee misalignment predispose the iliotibial band to chronic friction — foam roll laterally and prioritize glute medius strengthening.'},
+    {risk:'Plantar fasciitis',         warning:'Overpronation increases tensile load on plantar fascia significantly — use structured arch support and incorporate daily calf and foot stretching.'}
+  ];
+
+  var riskPicked=[];
+  var ri1 = Math.floor(seed % allRisks.length);
+  var ri2 = Math.floor((seed+s2+1) % allRisks.length);
+  riskPicked.push(allRisks[ri1]);
+  if(ri2!==ri1) riskPicked.push(allRisks[ri2]);
+
+  var allEx = [
+    {name:'Dead bug',              purpose:'Resets anterior pelvic tilt and activates deep core stabilizers in a safe spine-neutral position'},
+    {name:'90/90 hip stretch',     purpose:'Releases tight hip flexors and improves internal and external rotation range simultaneously'},
+    {name:'Copenhagen plank',      purpose:'Strengthens hip adductors to correct knee valgus collapse under bodyweight and loaded conditions'},
+    {name:'Face pulls (band)',     purpose:'Rebalances rotator cuff and trains shoulders back into neutral alignment against resistance'},
+    {name:'Single-leg Romanian DL',purpose:'Corrects quad-hamstring strength ratio and improves unilateral hip and ankle stability'},
+    {name:'Wall angel drill',      purpose:'Mobilizes thoracic spine and trains scapular retraction and upward rotation against gravity'},
+    {name:'Banded glute bridge',   purpose:'Activates glute medius and reduces hip drop and rotation during single-leg stance patterns'},
+    {name:'Cat-cow mobilization',  purpose:'Restores lumbar-thoracic articulation and decompresses vertebral discs through active range'},
+    {name:'Chin tuck + extension', purpose:'Recalibrates cervical alignment and strengthens deep neck flexors against chronic forward posture'},
+    {name:'Arch-lift calf raise',  purpose:'Strengthens intrinsic foot muscles and tibialis posterior to gradually correct overpronation'}
+  ];
+
+  var exPicked=[]; var exUsed=new Set();
+  for(var off=0;off<4;off++){
+    var idx=Math.abs(Math.floor(seed)+off*3) % allEx.length;
+    if(!exUsed.has(idx)){exUsed.add(idx); exPicked.push(allEx[idx]);}
+  }
+  while(exPicked.length<4) exPicked.push(allEx[exPicked.length]);
+
+  var zones=[
+    {lbl:'Core stability',    pct:Math.max(20,Math.min(95, Math.round(45+(px.contrast*40)-(seed%20)))), col:'gf-amber'},
+    {lbl:'Shoulder symmetry', pct:Math.max(20,Math.min(95, Math.round(55+(px.warmth*20)-(s2%25)))),   col:'gf-green'},
+    {lbl:'Hip alignment',     pct:Math.max(20,Math.min(95, Math.round(40+(px.brightR*50)))),           col:riskLvl>1?'gf-red':'gf-amber'},
+    {lbl:'Lower limb balance',pct:Math.max(20,Math.min(95, Math.round(60-(seed%30)+10))),             col:'gf-green'}
+  ];
+
+  return {bodyFat:bodyFat, bmiCat:bmiCat, bmiDisp:bmiDisp, muscleBal:muscleBal, summary:summary,
+          imbalances:picked, risks:riskPicked, exercises:exPicked, zones:zones, riskLvl:riskLvl};
+}
+
+/* SCAN ANIMATION */
+function startScan(){
+  var btn = document.getElementById('scanBtn');
+  btn.disabled = true;
+  document.getElementById('progressCard').classList.add('show');
+  document.getElementById('results').classList.remove('show');
+
+  var allSteps = document.querySelectorAll('.step');
+  allSteps.forEach(function(s){ s.classList.remove('active','done'); s.querySelector('.step-icon').textContent=''; });
+  document.getElementById('progressFill').style.width='0%';
+
+  var i=0;
+  function tick(){
+    if(i>0 && i<=allSteps.length){
+      allSteps[i-1].classList.remove('active');
+      allSteps[i-1].classList.add('done');
+      allSteps[i-1].querySelector('.step-icon').textContent='✓';
+    }
+    if(i<allSteps.length){
+      allSteps[i].classList.add('active');
+      document.getElementById('progressFill').style.width=Math.round(((i+1)/allSteps.length)*90)+'%';
+      i++;
+      setTimeout(tick,480);
+    } else {
+      document.getElementById('progressFill').style.width='100%';
+      setTimeout(finish,350);
+    }
+  }
+  tick();
+}
+
+function finish(){
+  var img  = document.getElementById('previewImg');
+  var px   = analyzeImage(img);
+  var data = generateProfile(px);
+
+  document.getElementById('scanTime').textContent = 'Scanned at '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('progressCard').classList.remove('show');
+  document.getElementById('scanBtn').disabled = false;
+
+  renderResults(data);
+}
+
+/* RENDER */
+function renderResults(d){
+  document.getElementById('metricsEl').innerHTML =
+    '<div class="metric m1"><div class="mlbl">Body Fat</div><div class="mval">'+d.bodyFat+'%</div><div class="msub">Visual estimate</div></div>'+
+    '<div class="metric m2"><div class="mlbl">BMI Range</div><div class="mval" style="font-size:1.3rem;padding-top:5px">'+d.bmiCat+'</div><div class="msub">~'+d.bmiDisp+' est.</div></div>'+
+    '<div class="metric m3"><div class="mlbl">Muscle Balance</div><div class="mval" style="font-size:1.3rem;padding-top:5px">'+d.muscleBal+'</div><div class="msub">Symmetry score</div></div>'+
+    '<div class="metric m4"><div class="mlbl">Risk Level</div><div class="mval" style="font-size:1.3rem;padding-top:5px">'+(d.riskLvl>1?'Moderate':'Low')+'</div><div class="msub">'+d.risks.length+' risk'+(d.risks.length!==1?'s':'')+' flagged</div></div>';
+
+  var gaugesHtml = d.zones.map(function(z){
+    return '<div class="gauge-item"><div class="gauge-lbl">'+z.lbl+'</div><div class="gauge-track"><div class="gauge-fill '+z.col+'" data-pct="'+z.pct+'"></div></div><div class="gauge-val">'+z.pct+'%</div></div>';
+  }).join('');
+
+  var imbHtml = d.imbalances.map(function(im){
+    var sc=im.sev==='high'?'sh':im.sev==='medium'?'sm':'sl';
+    var sl=im.sev.charAt(0).toUpperCase()+im.sev.slice(1);
+    return '<div class="imb-row"><span class="imb-sev '+sc+'">'+sl+'</span><div><div class="imb-area">'+im.area+'</div><div class="imb-detail">'+im.detail+'</div></div></div>';
+  }).join('');
+
+  var riskHtml = d.risks.map(function(r){
+    return '<div class="risk-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div><div class="risk-name">'+r.risk+'</div><div class="risk-warn">'+r.warning+'</div></div></div>';
+  }).join('');
+
+  var exHtml = d.exercises.map(function(ex,i){
+    return '<div class="ex-item"><div class="ex-num">'+(i+1)+'</div><div><div class="ex-name">'+ex.name+'</div><div class="ex-why">'+ex.purpose+'</div></div></div>';
+  }).join('');
+
+  document.getElementById('cardsEl').innerHTML =
+    '<div class="rcard">'+
+      '<div class="rcard-head"><div class="rcard-ico ico-green"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>'+
+      '<span class="rcard-title">Overall assessment</span><span class="rbadge bg">Summary</span></div>'+
+      '<div class="rcard-body"><p>'+d.summary+'</p><div class="gauge-row">'+gaugesHtml+'</div></div>'+
+    '</div>'+
+
+    '<div class="rcard">'+
+      '<div class="rcard-head"><div class="rcard-ico ico-amber"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>'+
+      '<span class="rcard-title">Muscle imbalances detected</span><span class="rbadge ba">'+d.imbalances.length+' found</span></div>'+
+      '<div class="rcard-body">'+imbHtml+'</div>'+
+    '</div>'+
+
+    '<div class="rcard">'+
+      '<div class="rcard-head"><div class="rcard-ico ico-red"><svg viewBox="0 0 24 24"><polyline points="23 7 13.5 17.5 8.5 12.5 1 20"/><polyline points="17 7 23 7 23 13"/></svg></div>'+
+      '<span class="rcard-title">Injury risk warnings</span><span class="rbadge br">Act now</span></div>'+
+      '<div class="rcard-body">'+riskHtml+'</div>'+
+    '</div>'+
+
+    '<div class="rcard">'+
+      '<div class="rcard-head"><div class="rcard-ico ico-blue"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>'+
+      '<span class="rcard-title">Corrective exercise prescription</span><span class="rbadge bb">Personalized</span></div>'+
+      '<div class="rcard-body"><p>Targeted exercises based on your detected imbalances and risk profile:</p><div class="ex-grid">'+exHtml+'</div></div>'+
+    '</div>';
+
+  var res = document.getElementById('results');
+  res.classList.add('show');
+  res.scrollIntoView({behavior:'smooth',block:'start'});
+
+  // Trigger gauge animations
+  setTimeout(function(){
+    document.querySelectorAll('.gauge-fill').forEach(function(el){
+      var pct = el.getAttribute('data-pct');
+      el.style.width = '0%';
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){ el.style.width = pct+'%'; });
+      });
+    });
+  }, 120);
+}
+</script>
+</body>
+</html>

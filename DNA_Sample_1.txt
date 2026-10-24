@@ -1,0 +1,21 @@
+# GeneForm DNA Export — Sample Profile 1
+# Format: rsID  chromosome  position  genotype
+# Generated: 2024-01-15 | Lab: GenomePro Analytics
+
+rs1815739	11	66560624	CC     # ACTN3 — XX endurance genotype
+rs8192678	4	23754776	AA     # PPARGC1A — mitochondrial biogenesis high
+rs3025039	6	43768651	CT     # VEGF — angiogenesis elevated
+rs4646994	17	61565892	II     # ACE — insertion allele (endurance)
+rs12722	2	189867838	CC     # COL5A1 — ligament laxity risk variant
+rs17602729	1	115499698	GG    # AMPD1 — wild type, efficient adenosine
+
+# Metabolic Markers
+rs9939609	16	53820527	AT     # FTO — heterozygous
+rs7903146	10	112998590	CT    # TCF7L2 — standard risk
+rs429358	19	45411941	TT     # APOE — ε3/ε3 (low CVD risk)
+rs1800795	7	22766645	GG    # IL-6 — low inflammatory baseline
+
+# Ancestry: Northern European (68%) | Scandinavian (22%) | Baltic (10%)
+# Total SNPs analyzed: 714,522
+# Quality Score: 98.4%
+# Notes: Strong VO2max genetic indicators. Recommend aerobic-focused protocol.

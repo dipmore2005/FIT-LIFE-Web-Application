@@ -1,0 +1,28 @@
+# GeneForm DNA Export — Sample Profile 4
+# Format: rsID  chromosome  position  genotype
+# Generated: 2024-07-11 | Lab: OmniGene Sequencing
+
+rs1815739	11	66560624	CT     # ACTN3 — RX balanced genotype (power+endurance)
+rs4646994	17	61565892	DI    # ACE — ID intermediate allele
+rs8192678	4	23754776	AG    # PPARGC1A — moderate mitochondrial output
+rs1800795	7	22766645	GG    # IL-6 — normal inflammatory baseline
+rs12722	2	189867838	TT    # COL5A1 — good tendon integrity
+rs2419621	19	49206178	TT    # BDKRB2 — +9/+9 exercise response
+
+# Recovery Markers
+rs1800625	6	31543057	CC    # TNFRSF1B — standard recovery
+rs2234693	6	151672871	CT   # ESR1 — estrogen receptor moderate
+rs361525	6	31543080	AG    # TNF-α — balanced response
+
+# Coordination & Neuro
+rs4680	22	19951271	AG     # COMT — moderate dopamine metabolism
+rs6265	11	27679916	AG     # BDNF — neuroplasticity balanced
+
+# Flexibility
+rs143384	12	48367227	AA    # GDF5 — good joint flexibility
+rs12901499	15	58169775	GG  # SLC45A2 — standard
+
+# Ancestry: East Asian (40%) | European (35%) | Southeast Asian (25%)
+# Total SNPs analyzed: 731,204
+# Quality Score: 99.1%
+# Notes: Excellent all-around athletic genome. Concurrent training recommended.

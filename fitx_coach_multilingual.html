@@ -1,0 +1,2591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitX Coach — AI Fitness Trainer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --brand:      #2563EB;
+      --brand-dark: #1E40AF;
+      --accent:     #F97316;
+      --accent-2:   #EF4444;
+      --success:    #22C55E;
+      --warning:    #F59E0B;
+      --bg:         #F1F5F9;
+      --card:       #FFFFFF;
+      --header-bg:  #0F172A;
+      --text:       #0F172A;
+      --text-sub:   #64748B;
+      --border:     #E2E8F0;
+      --shadow:     0 4px 24px rgba(15,23,42,0.10);
+      --radius:     18px;
+      --radius-sm:  10px;
+      --font-head:  'Syne', sans-serif;
+      --font-body:  'DM Sans', sans-serif;
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: linear-gradient(135deg, #EEF2FF 0%, #F0F9FF 40%, #F5F3FF 70%, #F0FDF4 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .app {
+      width: 100%;
+      max-width: 1140px;
+      background: var(--card);
+      border-radius: 28px;
+      box-shadow: 0 20px 60px rgba(37,99,235,0.12), 0 4px 20px rgba(0,0,0,0.06);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 92vh;
+    }
+    .header {
+      background: var(--header-bg);
+      color: white;
+      padding: 14px 26px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    .logo { font-family: var(--font-head); font-size: 21px; font-weight: 800; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+    .logo i { color: var(--accent); }
+    .logo span em { color: var(--brand); font-style: normal; }
+    .header-tabs { flex: 1; display: flex; justify-content: center; gap: 4px; }
+    .tab-btn { font-family: var(--font-body); background: rgba(255,255,255,0.08); border: none; color: rgba(255,255,255,0.6); padding: 8px 20px; border-radius: 30px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+    .tab-btn:hover { background: rgba(255,255,255,0.16); color: white; }
+    .tab-btn.active { background: var(--brand); color: white; font-weight: 600; }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .premium-btn { font-family: var(--font-body); background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%); border: none; padding: 9px 18px; border-radius: 30px; color: white; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: transform 0.2s, box-shadow 0.2s; animation: pulse 3s infinite; }
+    .premium-btn:hover { transform: scale(1.05); }
+    @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(249,115,22,0.5); } 50% { box-shadow: 0 0 0 8px rgba(249,115,22,0); } }
+    .icon-btn { background: rgba(255,255,255,0.1); border: none; width: 38px; height: 38px; border-radius: 50%; color: rgba(255,255,255,0.8); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: background 0.2s; }
+    .icon-btn:hover { background: rgba(255,255,255,0.22); color: white; }
+    .plan-badge-header { background: linear-gradient(135deg,#F97316,#EF4444); color: white; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.3px; display: none; }
+    .tab-panel { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+    .tab-panel.active { display: flex; }
+    /* CHAT */
+    .chat-messages { flex: 1; overflow-y: auto; padding: 22px 22px 10px; background: var(--bg); scroll-behavior: smooth; }
+    .chat-messages::-webkit-scrollbar { width: 5px; }
+    .chat-messages::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+    .message { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 18px; animation: msgIn 0.3s ease-out both; }
+    @keyframes msgIn { from { opacity:0; transform: translateY(14px); } to { opacity:1; transform: translateY(0); } }
+    .message.user { flex-direction: row-reverse; }
+    .av { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
+    .message.bot .av { background: linear-gradient(135deg, var(--brand), var(--brand-dark)); color: white; }
+    .message.user .av { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; }
+    .bubble { max-width: 68%; padding: 13px 18px; border-radius: 20px; font-size: 14px; line-height: 1.6; }
+    .message.bot .bubble { background: white; color: var(--text); border-bottom-left-radius: 4px; box-shadow: var(--shadow); }
+    .message.user .bubble { background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%); color: white; border-bottom-right-radius: 4px; }
+    .bubble .ts { font-size: 11px; opacity: 0.5; margin-top: 6px; display: block; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .chip { font-family: var(--font-body); background: var(--bg); border: 2px solid var(--brand); color: var(--brand); padding: 7px 16px; border-radius: 30px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+    .chip:hover:not(:disabled) { background: var(--brand); color: white; }
+    .chip:disabled { opacity: 0.45; cursor: not-allowed; }
+    .upload-area { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .upload-lbl { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, var(--brand), var(--brand-dark)); color: white; padding: 9px 18px; border-radius: 30px; cursor: pointer; font-size: 13px; font-weight: 600; transition: transform 0.2s; }
+    .upload-lbl:hover { transform: scale(1.03); }
+    .upload-lbl input { display: none; }
+    .err-bubble { background: #fff5f5; border-left: 3px solid var(--accent-2); color: var(--accent-2); font-size: 13px; padding: 10px 16px; border-radius: 12px; margin-bottom: 12px; animation: msgIn 0.25s ease-out both; }
+    .typing-row { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 18px; }
+    .typing-dots { background: white; padding: 14px 18px; border-radius: 20px 20px 20px 4px; box-shadow: var(--shadow); display: flex; gap: 5px; align-items: center; }
+    .typing-dots span { width: 8px; height: 8px; background: var(--brand); border-radius: 50%; animation: bounce 1.2s infinite; }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-8px); } }
+    .input-area { padding: 14px 20px; background: white; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
+    .chat-input { flex: 1; padding: 13px 18px; border: 2px solid var(--border); border-radius: 30px; font-size: 14px; font-family: var(--font-body); outline: none; transition: border-color 0.2s; }
+    .chat-input:focus { border-color: var(--brand); }
+    .chat-input:disabled { background: var(--bg); cursor: not-allowed; }
+    .send-btn { width: 46px; height: 46px; border-radius: 50%; border: none; background: linear-gradient(135deg, var(--brand), var(--brand-dark)); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: transform 0.2s, opacity 0.2s; flex-shrink: 0; }
+    .send-btn:hover:not(:disabled) { transform: scale(1.1); }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    /* DASHBOARD */
+    .dash-scroll { flex: 1; overflow-y: auto; padding: 24px; background: var(--bg); }
+    .dash-scroll::-webkit-scrollbar { width: 5px; }
+    .dash-scroll::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin-bottom: 20px; }
+    .stat-card { background: white; border-radius: var(--radius); padding: 18px; text-align: center; box-shadow: var(--shadow); }
+    .stat-icon { width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(135deg, var(--brand), var(--brand-dark)); color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; margin: 0 auto 10px; }
+    .stat-val { font-family: var(--font-head); font-size: 22px; font-weight: 700; color: var(--text); }
+    .stat-lbl { font-size: 12px; color: var(--text-sub); margin-top: 4px; }
+    .stat-card.g .stat-icon { background: linear-gradient(135deg, #22C55E, #166534); }
+    .stat-card.y .stat-icon { background: linear-gradient(135deg, #F59E0B, #B45309); }
+    .stat-card.r .stat-icon { background: linear-gradient(135deg, #EF4444, #991B1B); }
+    .stat-card.o .stat-icon { background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+    .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+    .dash-card { background: white; border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+    .dash-card-title { font-family: var(--font-head); font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .dash-card-title i { color: var(--brand); }
+    .chart-wrap { height: 220px; position: relative; }
+    .lock-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.88); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; backdrop-filter: blur(3px); z-index: 5; border-radius: var(--radius); }
+    .lock-overlay i { font-size: 28px; color: var(--text-sub); }
+    .lock-overlay p { font-size: 13px; color: var(--text-sub); text-align: center; padding: 0 20px; }
+    .lock-overlay button { background: linear-gradient(135deg, var(--brand), var(--brand-dark)); color: white; border: none; padding: 9px 22px; border-radius: 30px; cursor: pointer; font-weight: 600; font-size: 13px; font-family: var(--font-body); }
+    /* Meal rows */
+    .meal-row { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+    .meal-row:last-child { border: none; }
+    .meal-icon { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--brand), var(--brand-dark)); color: white; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+    .meal-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .meal-desc { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+    .swap-btn { margin-left: auto; background: none; border: 2px solid var(--brand); color: var(--brand); padding: 4px 10px; border-radius: 20px; cursor: pointer; font-size: 11px; font-weight: 600; font-family: var(--font-body); flex-shrink: 0; transition: all 0.2s; }
+    .swap-btn:hover { background: var(--brand); color: white; }
+    /* Workout items */
+    .wk-item { background: var(--bg); border-radius: var(--radius-sm); padding: 11px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+    .wk-num { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--brand), var(--brand-dark)); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+    .wk-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .wk-detail { font-size: 12px; color: var(--text-sub); }
+    /* Deals */
+    .deal-row { border: 2px dashed var(--brand); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
+    .deal-code { background: linear-gradient(135deg, var(--brand), var(--brand-dark)); color: white; padding: 6px 12px; border-radius: 8px; font-family: var(--font-head); font-size: 14px; letter-spacing: 1px; flex-shrink: 0; }
+    .deal-info { flex: 1; }
+    .deal-info h5 { font-size: 13px; font-weight: 600; color: var(--text); }
+    .deal-info p { font-size: 12px; color: var(--text-sub); }
+    .deal-btn { font-family: var(--font-body); background: none; border: 2px solid var(--brand); color: var(--brand); padding: 6px 14px; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s; }
+    .deal-btn:hover { background: var(--brand); color: white; }
+    /* Media cards */
+    .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 12px; max-height: 320px; overflow-y: auto; padding-right: 4px; }
+    .media-grid::-webkit-scrollbar { width: 4px; }
+    .media-grid::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+    .media-card { border-radius: 12px; overflow: hidden; border: 2px solid var(--border); transition: border-color 0.2s, transform 0.2s; cursor: pointer; }
+    .media-card:hover { border-color: var(--brand); transform: translateY(-2px); }
+    .media-thumb { width: 100%; height: 90px; background: linear-gradient(135deg, #0F172A, #1E3A5F); display: flex; align-items: center; justify-content: center; font-size: 28px; position: relative; }
+    .media-thumb .play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.2s; }
+    .media-card:hover .play-overlay { opacity: 1; }
+    .media-thumb-spotify { background: linear-gradient(135deg, #1DB954, #157040); }
+    .media-thumb-youtube { background: linear-gradient(135deg, #FF0000, #8B0000); }
+    .media-info { padding: 8px 10px; }
+    .media-title { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .media-sub { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
+    .media-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 8px; margin-bottom: 4px; }
+    .media-badge.spotify { background: #1DB954; color: white; }
+    .media-badge.youtube { background: #FF0000; color: white; }
+    /* MODALS */
+    .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 1000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(6px); animation: fadeIn 0.2s; }
+    @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+    .modal-bg.open { display: flex; }
+    .modal-box { background: white; border-radius: 24px; padding: 38px; max-width: 880px; width: 100%; max-height: 88vh; overflow-y: auto; position: relative; animation: slideUp 0.3s ease-out; }
+    @keyframes slideUp { from{opacity:0;transform:translateY(28px);} to{opacity:1;transform:translateY(0);} }
+    .modal-box::-webkit-scrollbar { width: 5px; }
+    .modal-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    .modal-close { position: absolute; top: 16px; right: 18px; width: 32px; height: 32px; border-radius: 50%; background: var(--bg); border: none; cursor: pointer; font-size: 14px; color: var(--text-sub); display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+    .modal-close:hover { background: var(--border); }
+    .modal-title { font-family: var(--font-head); text-align: center; font-size: 26px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+    .modal-sub { text-align: center; color: var(--text-sub); font-size: 14px; margin-bottom: 28px; }
+    .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+    .plan-card { background: linear-gradient(145deg, var(--brand) 0%, var(--brand-dark) 100%); color: white; border-radius: 20px; padding: 28px 22px; text-align: center; cursor: pointer; transition: transform 0.25s, box-shadow 0.25s; overflow: hidden; position: relative; }
+    .plan-card.elite { background: linear-gradient(145deg, #7C3AED 0%, #4C1D95 100%); }
+    .plan-card::after { content:''; position: absolute; top:-50%; left:-60%; width:200%; height:200%; background: linear-gradient(45deg,transparent,rgba(255,255,255,0.07),transparent); animation: shimmer 3s infinite linear; }
+    @keyframes shimmer { 0%  { transform: translateX(-100%) translateY(-100%) rotate(45deg); } 100%{ transform: translateX(80%) translateY(80%) rotate(45deg); } }
+    .plan-card:hover { transform: translateY(-8px); box-shadow: 0 20px 50px rgba(37,99,235,0.4); }
+    .plan-badge-card { display: inline-block; background: #fbbf24; color: #7c2d12; font-size: 10px; font-weight: 800; padding: 3px 10px; border-radius: 10px; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .plan-name { font-family: var(--font-head); font-size: 22px; }
+    .plan-price { font-family: var(--font-head); font-size: 38px; font-weight: 800; margin: 12px 0; }
+    .plan-price span { font-family: var(--font-body); font-size: 15px; font-weight: 400; }
+    .plan-feats { list-style: none; text-align: left; margin: 16px 0; }
+    .plan-feats li { padding: 6px 0; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.15); display: flex; gap: 8px; align-items: center; }
+    .plan-feats li i { font-size: 11px; opacity: 0.85; }
+    .plan-btn { font-family: var(--font-body); background: rgba(255,255,255,0.18); border: 2px solid rgba(255,255,255,0.6); color: white; padding: 10px 24px; border-radius: 30px; font-weight: 700; cursor: pointer; margin-top: 16px; width: 100%; font-size: 14px; transition: background 0.2s; }
+    .plan-btn:hover { background: rgba(255,255,255,0.32); }
+    /* Payment modal */
+    .pay-box { max-width: 480px; text-align: center; }
+    .pay-amount { font-family: var(--font-head); font-size: 44px; font-weight: 800; color: var(--brand); margin: 16px 0; }
+    .pay-methods { display: grid; grid-template-columns: repeat(auto-fit,minmax(88px,1fr)); gap: 12px; margin: 24px 0; }
+    .pay-method { border: 2px solid var(--border); border-radius: 14px; padding: 16px 8px; cursor: pointer; transition: all 0.2s; }
+    .pay-method:hover { border-color: var(--brand); background: #EFF6FF; }
+    .pay-method i { font-size: 26px; color: var(--brand); display: block; margin-bottom: 6px; }
+    .pay-method span { font-size: 12px; color: var(--text-sub); font-weight: 500; }
+    /* Settings modal */
+    .settings-box { max-width: 500px; }
+    .setting-group { margin-bottom: 22px; }
+    .setting-label { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px; display: block; }
+    .setting-input { width: 100%; padding: 12px 16px; border: 2px solid var(--border); border-radius: 14px; font-size: 14px; font-family: var(--font-body); outline: none; transition: border-color 0.2s; }
+    .setting-input:focus { border-color: var(--brand); }
+    .setting-hint { font-size: 12px; color: var(--text-sub); margin-top: 6px; }
+    .setting-btn { width: 100%; padding: 13px; background: linear-gradient(135deg, var(--brand), var(--brand-dark)); color: white; border: none; border-radius: 14px; font-size: 15px; font-weight: 700; font-family: var(--font-body); cursor: pointer; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .setting-btn:hover { opacity: 0.9; }
+    .setting-btn.danger { background: linear-gradient(135deg, #EF4444, #DC2626); margin-top: 12px; }
+    /* Swap Modal */
+    .swap-box { max-width: 680px; }
+    .swap-search { width: 100%; padding: 12px 18px; border: 2px solid var(--border); border-radius: 30px; font-size: 14px; font-family: var(--font-body); outline: none; margin-bottom: 16px; transition: border-color 0.2s; }
+    .swap-search:focus { border-color: var(--brand); }
+    .swap-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .filter-chip { background: var(--bg); border: 2px solid var(--border); color: var(--text-sub); padding: 5px 14px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; font-family: var(--font-body); }
+    .filter-chip.active, .filter-chip:hover { background: var(--brand); border-color: var(--brand); color: white; }
+    .swap-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; max-height: 380px; overflow-y: auto; padding-right: 4px; }
+    .swap-list::-webkit-scrollbar { width: 4px; }
+    .swap-list::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+    .swap-item { border: 2px solid var(--border); border-radius: 14px; padding: 12px; cursor: pointer; transition: all 0.2s; }
+    .swap-item:hover { border-color: var(--brand); background: #EFF6FF; }
+    .swap-item-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .swap-item-detail { font-size: 11px; color: var(--text-sub); }
+    .swap-item-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+    .tag { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 8px; background: var(--bg); color: var(--text-sub); }
+    .tag.veg { background: #DCFCE7; color: #166534; }
+    .tag.vegan { background: #D1FAE5; color: #065F46; }
+    .tag.non-veg { background: #FEE2E2; color: #991B1B; }
+    .tag.high-protein { background: #EFF6FF; color: #1D4ED8; }
+    .tag.low-carb { background: #FFF7ED; color: #C2410C; }
+    /* Toast */
+    .toast-wrap { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
+    .toast { background: white; border-radius: 16px; padding: 14px 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); display: flex; align-items: center; gap: 12px; min-width: 270px; max-width: 340px; animation: toastIn 0.3s ease-out; }
+    @keyframes toastIn { from{opacity:0;transform:translateX(30px);} to{opacity:1;transform:translateX(0);} }
+    .toast-ico { font-size: 22px; }
+    .toast-body { flex:1; }
+    .toast-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .toast-msg { font-size: 13px; color: var(--text-sub); margin-top: 2px; }
+    .toast-x { cursor: pointer; color: var(--text-sub); font-size: 14px; }
+    @media(max-width:768px){
+      .app { height: 97vh; border-radius: 18px; }
+      .header { padding: 12px 14px; gap: 10px; }
+      .logo { font-size: 17px; }
+      .tab-btn { padding: 7px 13px; font-size: 12px; }
+      .premium-btn { padding: 8px 12px; font-size: 12px; }
+      .bubble { max-width: 82%; }
+      .plans-grid { grid-template-columns: 1fr; }
+      .dash-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2,1fr); }
+    }
+    @media(max-width:500px){ .header-tabs .tab-btn span { display: none; } }
+
+    /* ══════ TRAINER SECTION LAYOUT ══════ */
+    .trainer-section-wrap { display: flex; gap: 14px; align-items: flex-start; }
+    .trainer-section-main { flex: 1; min-width: 0; }
+
+    /* ══════ LANGUAGE SELECTOR ══════ */
+    .lang-select {
+      background: rgba(255,255,255,0.12); border: 1.5px solid rgba(255,255,255,0.25);
+      color: white; border-radius: 20px; padding: 6px 12px; font-size: 12px;
+      font-family: var(--font-body); cursor: pointer; outline: none;
+      font-weight: 600; transition: background 0.2s;
+    }
+    .lang-select:hover { background: rgba(255,255,255,0.22); }
+    .lang-select option { background: #0F172A; color: white; }
+
+    /* ══════ TRAINER CARDS ══════ */
+    .trainers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+    .trainer-card {
+      background: white; border-radius: 18px; padding: 20px;
+      border: 2px solid var(--border); cursor: pointer;
+      transition: all 0.25s; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      position: relative; overflow: hidden;
+    }
+    .trainer-card:hover { border-color: var(--brand); transform: translateY(-3px); box-shadow: 0 8px 28px rgba(37,99,235,0.14); }
+    .trainer-card.recommended { border-color: var(--brand); }
+    .trainer-card .rec-badge { position:absolute; top:12px; right:12px; background:var(--brand); color:white; font-size:9px; font-weight:700; padding:3px 8px; border-radius:8px; letter-spacing:0.3px; }
+    .trainer-avatar { width:68px; height:68px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 12px; flex-shrink:0; }
+    .trainer-name { font-family:var(--font-head); font-size:16px; font-weight:700; color:var(--text); text-align:center; margin-bottom:4px; }
+    .trainer-spec { font-size:12px; color:var(--brand); font-weight:600; text-align:center; margin-bottom:6px; }
+    .trainer-exp { font-size:11px; color:var(--text-sub); text-align:center; margin-bottom:8px; }
+    .trainer-rating { display:flex; align-items:center; justify-content:center; gap:4px; margin-bottom:10px; }
+    .trainer-rating .stars { color:#f59e0b; font-size:12px; }
+    .trainer-rating .rv { font-size:11px; color:var(--text-sub); }
+    .trainer-status { display:flex; align-items:center; justify-content:center; gap:5px; font-size:11px; font-weight:600; margin-bottom:12px; }
+    .trainer-status.online { color:var(--success); }
+    .trainer-status.busy { color:var(--warning); }
+    .trainer-status .dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .trainer-status.online .dot { background:var(--success); }
+    .trainer-status.busy .dot { background:var(--warning); }
+    .trainer-actions { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+    .trainer-action-btn { border:none; border-radius:10px; padding:8px 6px; font-size:11px; font-weight:600; cursor:pointer; font-family:var(--font-body); transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:5px; }
+    .trainer-action-btn.primary { background:var(--brand); color:white; }
+    .trainer-action-btn.primary:hover { background:var(--brand-dark); }
+    .trainer-action-btn.secondary { background:var(--bg); color:var(--text); border:1px solid var(--border); }
+    .trainer-action-btn.secondary:hover { background:var(--border); }
+    .trainer-action-btn.success { background:#dcfce7; color:#166534; }
+    .trainer-action-btn.success:hover { background:#bbf7d0; }
+    .trainer-action-btn.accent { background:#fff7ed; color:#c2410c; }
+    .trainer-action-btn.accent:hover { background:#fed7aa; }
+
+    /* ══════ VIDEO CALL MODAL ══════ */
+    .vcall-modal { max-width:720px; padding:0; overflow:hidden; border-radius:24px; }
+    .vcall-header { background:linear-gradient(135deg,#0f172a,#1e3a5f); padding:16px 24px; display:flex; align-items:center; gap:14px; }
+    .vcall-header .vc-name { color:white; font-weight:700; font-size:16px; }
+    .vcall-header .vc-status { color:rgba(255,255,255,0.6); font-size:12px; margin-top:2px; }
+    .vcall-video-area { background:#0a0f1e; height:320px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+    .vcall-video-area .vc-bg { position:absolute; inset:0; background:radial-gradient(ellipse at center,#1a2a4a 0%,#0a0f1e 100%); }
+    .vcall-trainer-vid { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:12px; z-index:2; }
+    .vc-trainer-avatar { width:90px; height:90px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:38px; border:3px solid rgba(255,255,255,0.2); }
+    .vcall-trainer-vid .vc-calling { color:rgba(255,255,255,0.7); font-size:13px; animation:blink 1.5s infinite; }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+    .vcall-self { position:absolute; bottom:14px; right:14px; width:100px; height:72px; background:linear-gradient(135deg,#1e3a5f,#2563EB40); border-radius:12px; border:2px solid rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; z-index:3; font-size:22px; }
+    .vcall-timer { position:absolute; top:14px; left:14px; background:rgba(0,0,0,0.5); color:white; padding:4px 12px; border-radius:20px; font-size:13px; font-weight:600; z-index:3; }
+    .vcall-controls { background:#111827; padding:16px; display:flex; align-items:center; justify-content:center; gap:12px; }
+    .vc-ctrl { width:48px; height:48px; border-radius:50%; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; transition:all 0.2s; }
+    .vc-ctrl.mute { background:#374151; color:white; }
+    .vc-ctrl.mute:hover, .vc-ctrl.mute.active { background:#6b7280; }
+    .vc-ctrl.cam { background:#374151; color:white; }
+    .vc-ctrl.end { background:#ef4444; color:white; width:60px; height:60px; font-size:20px; }
+    .vc-ctrl.end:hover { background:#dc2626; }
+    .vc-ctrl.chat-btn { background:#2563EB; color:white; }
+    .vcall-body { padding:20px 24px; }
+
+    /* ══════ TRAINER CHAT MODAL ══════ */
+    .tchat-modal { max-width:540px; padding:0; border-radius:24px; overflow:hidden; }
+    .tchat-header { background:linear-gradient(135deg,var(--brand),var(--brand-dark)); padding:16px 20px; display:flex; align-items:center; gap:12px; }
+    .tchat-header .th-avatar { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; border:2px solid rgba(255,255,255,0.3); }
+    .tchat-header .th-name { color:white; font-weight:700; font-size:15px; }
+    .tchat-header .th-online { color:rgba(255,255,255,0.75); font-size:11px; display:flex; align-items:center; gap:4px; }
+    .tchat-header .th-online::before { content:''; width:6px; height:6px; background:#4ade80; border-radius:50%; display:inline-block; }
+    .tchat-msgs { height:280px; overflow-y:auto; padding:16px; background:var(--bg); }
+    .tchat-msgs::-webkit-scrollbar { width:4px; }
+    .tchat-msgs::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:4px; }
+    .tchat-msg { display:flex; gap:8px; margin-bottom:14px; }
+    .tchat-msg.from-trainer { flex-direction:row; }
+    .tchat-msg.from-me { flex-direction:row-reverse; }
+    .tchat-msg .tm-bubble { max-width:75%; padding:10px 14px; border-radius:16px; font-size:13px; line-height:1.5; }
+    .tchat-msg.from-trainer .tm-bubble { background:white; color:var(--text); border-bottom-left-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+    .tchat-msg.from-me .tm-bubble { background:linear-gradient(135deg,var(--brand),var(--brand-dark)); color:white; border-bottom-right-radius:4px; }
+    .tchat-msg .tm-av { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+    .tchat-msg.from-trainer .tm-av { background:linear-gradient(135deg,var(--brand),var(--brand-dark)); color:white; }
+    .tchat-msg.from-me .tm-av { background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:white; }
+    .tchat-input-row { padding:12px 16px; background:white; border-top:1px solid var(--border); display:flex; gap:8px; align-items:center; }
+    .tchat-inp { flex:1; padding:10px 16px; border:2px solid var(--border); border-radius:24px; font-size:13px; font-family:var(--font-body); outline:none; transition:border-color 0.2s; }
+    .tchat-inp:focus { border-color:var(--brand); }
+    .tchat-send { width:40px; height:40px; border-radius:50%; border:none; background:var(--brand); color:white; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; transition:transform 0.2s; }
+    .tchat-send:hover { transform:scale(1.1); }
+
+    /* ══════ SESSION BOOKING MODAL ══════ */
+    .book-modal { max-width:600px; }
+    .book-trainer-info { display:flex; align-items:center; gap:14px; padding:14px 18px; background:var(--bg); border-radius:16px; margin-bottom:20px; }
+    .book-section-title { font-size:13px; font-weight:700; color:var(--text); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+    .book-section-title i { color:var(--brand); }
+    .booking-calendar { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:20px; }
+    .cal-day-hdr { text-align:center; font-size:11px; font-weight:600; color:var(--text-sub); padding:4px 0; }
+    .cal-day { text-align:center; padding:8px 4px; border-radius:10px; font-size:13px; font-weight:500; cursor:pointer; transition:all 0.2s; border:2px solid transparent; }
+    .cal-day.empty { visibility:hidden; }
+    .cal-day.past { color:var(--text-sub); opacity:0.4; cursor:not-allowed; }
+    .cal-day.available:hover { background:var(--bg); border-color:var(--brand); }
+    .cal-day.selected { background:var(--brand); color:white; border-color:var(--brand); }
+    .time-slots { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:20px; }
+    .time-slot { padding:10px 6px; border:2px solid var(--border); border-radius:12px; text-align:center; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+    .time-slot:hover:not(.taken) { border-color:var(--brand); background:#eff6ff; }
+    .time-slot.selected { background:var(--brand); color:white; border-color:var(--brand); }
+    .time-slot.taken { opacity:0.35; cursor:not-allowed; color:var(--text-sub); }
+    .session-types { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; }
+    .session-type { padding:14px; border:2px solid var(--border); border-radius:14px; cursor:pointer; transition:all 0.2s; text-align:center; }
+    .session-type:hover { border-color:var(--brand); background:#eff6ff; }
+    .session-type.selected { border-color:var(--brand); background:#eff6ff; }
+    .session-type .st-icon { font-size:24px; margin-bottom:6px; display:block; }
+    .session-type .st-name { font-weight:700; font-size:13px; color:var(--text); }
+    .session-type .st-dur { font-size:11px; color:var(--text-sub); }
+    .book-confirm-btn { width:100%; padding:13px; background:linear-gradient(135deg,var(--brand),var(--brand-dark)); color:white; border:none; border-radius:14px; font-size:15px; font-weight:700; cursor:pointer; font-family:var(--font-body); transition:opacity 0.2s; display:flex; align-items:center; justify-content:center; gap:8px; }
+    .book-confirm-btn:hover { opacity:0.9; }
+
+    /* ══════ TRAINER PROFILE MODAL ══════ */
+    .profile-modal { max-width:640px; }
+    .trainer-profile-header { display:flex; gap:20px; align-items:flex-start; margin-bottom:24px; padding-bottom:20px; border-bottom:1px solid var(--border); }
+    .tp-avatar-lg { width:90px; height:90px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:40px; flex-shrink:0; }
+    .tp-name { font-family:var(--font-head); font-size:22px; font-weight:800; color:var(--text); margin-bottom:4px; }
+    .tp-spec { font-size:13px; color:var(--brand); font-weight:600; margin-bottom:6px; }
+    .tp-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+    .tp-tag { background:var(--bg); color:var(--text-sub); font-size:11px; font-weight:600; padding:3px 10px; border-radius:10px; }
+    .tp-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+    .tp-stat { background:var(--bg); border-radius:14px; padding:14px; text-align:center; }
+    .tp-stat-val { font-family:var(--font-head); font-size:20px; font-weight:700; color:var(--brand); }
+    .tp-stat-lbl { font-size:11px; color:var(--text-sub); margin-top:4px; }
+    .tp-section { margin-bottom:18px; }
+    .tp-section h4 { font-size:13px; font-weight:700; color:var(--text); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+    .tp-section h4 i { color:var(--brand); }
+    .tp-section p { font-size:13px; color:var(--text-sub); line-height:1.6; }
+    .tp-certs { display:flex; flex-wrap:wrap; gap:8px; }
+    .tp-cert { background:linear-gradient(135deg,#eff6ff,#dbeafe); color:var(--brand); font-size:11px; font-weight:600; padding:5px 12px; border-radius:10px; border:1px solid #bfdbfe; }
+    .tp-reviews { display:flex; flex-direction:column; gap:10px; }
+    .tp-review { background:var(--bg); border-radius:12px; padding:12px 14px; }
+    .tp-review .rev-head { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+    .tp-review .rev-name { font-size:13px; font-weight:600; color:var(--text); }
+    .tp-review .rev-stars { color:#f59e0b; font-size:11px; }
+    .tp-review p { font-size:12px; color:var(--text-sub); line-height:1.5; }
+
+    /* ══════ PAYMENT FORMS ══════ */
+    .pay-method-content { display:none; margin-top:20px; text-align:left; }
+    .pay-method-content.active { display:block; }
+    .pay-form-group { margin-bottom:16px; }
+    .pay-form-label { display:block; font-size:13px; font-weight:600; color:var(--text); margin-bottom:6px; }
+    .pay-form-input { width:100%; padding:12px 16px; border:2px solid var(--border); border-radius:12px; font-size:14px; font-family:var(--font-body); outline:none; transition:border-color 0.2s; }
+    .pay-form-input:focus { border-color:var(--brand); }
+    .pay-form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .pay-submit-btn { width:100%; padding:13px; background:linear-gradient(135deg,var(--brand),var(--brand-dark)); color:white; border:none; border-radius:14px; font-size:15px; font-weight:700; cursor:pointer; font-family:var(--font-body); display:flex; align-items:center; justify-content:center; gap:8px; transition:opacity 0.2s; margin-top:6px; }
+    .pay-submit-btn:hover { opacity:0.92; }
+    .upi-display-box { background:linear-gradient(135deg,#f0f9ff,#e0f2fe); border:2px solid #7dd3fc; border-radius:16px; padding:18px; text-align:center; margin-bottom:20px; }
+    .upi-display-box .upi-label { font-size:12px; color:#0369a1; font-weight:600; margin-bottom:6px; }
+    .upi-display-box .upi-id { font-family:var(--font-head); font-size:22px; font-weight:800; color:var(--brand); letter-spacing:0.5px; }
+    .upi-display-box .upi-copy { background:none; border:2px solid var(--brand); color:var(--brand); padding:4px 14px; border-radius:20px; font-size:12px; font-weight:600; cursor:pointer; margin-top:8px; font-family:var(--font-body); transition:all 0.2s; }
+    .upi-display-box .upi-copy:hover { background:var(--brand); color:white; }
+    .upi-qr { width:100px; height:100px; margin:12px auto 8px; background:linear-gradient(135deg,#1a1a2e,#16213e); border-radius:12px; display:flex; align-items:center; justify-content:center; color:white; font-size:10px; text-align:center; padding:8px; border:3px solid var(--brand); }
+    .bank-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:18px; }
+    .bank-card { border:2px solid var(--border); border-radius:14px; padding:12px 8px; text-align:center; cursor:pointer; transition:all 0.2s; }
+    .bank-card:hover { border-color:var(--brand); background:#eff6ff; }
+    .bank-card.selected { border-color:var(--brand); background:#eff6ff; }
+    .bank-card .bank-icon { font-size:22px; margin-bottom:4px; }
+    .bank-card .bank-name { font-size:11px; font-weight:600; color:var(--text); }
+    .bank-creds { display:none; }
+    .bank-creds.visible { display:block; }
+    .pay-back-btn { background:none; border:none; color:var(--brand); font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font-body); margin-bottom:14px; display:flex; align-items:center; gap:5px; }
+    .pay-back-btn:hover { opacity:0.75; }
+    .card-preview { background:linear-gradient(135deg,#1e3a5f,#2563EB); border-radius:16px; padding:20px; color:white; margin-bottom:20px; position:relative; overflow:hidden; }
+    .card-preview::before { content:''; position:absolute; top:-40px; right:-40px; width:140px; height:140px; background:rgba(255,255,255,0.08); border-radius:50%; }
+    .card-preview::after { content:''; position:absolute; bottom:-30px; left:-20px; width:100px; height:100px; background:rgba(255,255,255,0.05); border-radius:50%; }
+    .card-chip { width:36px; height:26px; background:linear-gradient(135deg,#f59e0b,#d97706); border-radius:6px; margin-bottom:18px; }
+    .card-number-display { font-family:var(--font-head); font-size:18px; letter-spacing:4px; margin-bottom:16px; }
+    .card-bottom { display:flex; justify-content:space-between; }
+    .card-bottom .cb-label { font-size:10px; opacity:0.6; text-transform:uppercase; letter-spacing:0.5px; }
+    .card-bottom .cb-val { font-weight:600; font-size:13px; }
+    .pay-methods-updated { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:20px 0 6px; }
+    .pay-method-tab { border:2px solid var(--border); border-radius:14px; padding:14px 8px; cursor:pointer; transition:all 0.2s; text-align:center; }
+    .pay-method-tab:hover { border-color:var(--brand); background:#eff6ff; }
+    .pay-method-tab.selected { border-color:var(--brand); background:#eff6ff; }
+    .pay-method-tab i { font-size:24px; color:var(--brand); display:block; margin-bottom:6px; }
+    .pay-method-tab span { font-size:12px; color:var(--text-sub); font-weight:500; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo" id="logoEl"><i class="fas fa-dumbbell"></i><span>Fit<em>X</em> Coach</span></div>
+    <div class="header-tabs">
+      <button class="tab-btn active" id="tab-chat" onclick="switchTab('chat')"><i class="fas fa-comment-dots"></i> <span data-i18n="chat">Chat</span></button>
+      <button class="tab-btn" id="tab-dash" onclick="switchTab('dash')"><i class="fas fa-chart-line"></i> <span data-i18n="dashboard">Dashboard</span></button>
+    </div>
+    <div class="header-actions">
+      <span class="plan-badge-header" id="planBadgeHeader">FREE</span>
+      <select class="lang-select" id="langSelect" onchange="setLanguage(this.value)" title="Language">
+        <option value="en">🌐 EN</option>
+        <option value="hi">हिं HI</option>
+        <option value="mr">म MR</option>
+        <option value="ta">த TA</option>
+        <option value="te">తె TE</option>
+        <option value="bn">বাং BN</option>
+        <option value="es">🇪🇸 ES</option>
+        <option value="fr">🇫🇷 FR</option>
+        <option value="de">🇩🇪 DE</option>
+        <option value="pt">🇧🇷 PT</option>
+        <option value="ar">🇸🇦 AR</option>
+        <option value="zh">🇨🇳 ZH</option>
+        <option value="ja">🇯🇵 JA</option>
+      </select>
+      <button class="premium-btn" id="premiumBtnEl" onclick="openPremium()"><i class="fas fa-crown"></i> <span data-i18n="premium">Premium</span></button>
+      <button class="icon-btn" onclick="openSettings()" title="Settings"><i class="fas fa-cog"></i></button>
+    </div>
+  </div>
+
+  <!-- CHAT PANEL -->
+  <div class="tab-panel active" id="panel-chat">
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="input-area">
+      <input type="text" id="chatInput" class="chat-input" placeholder="Type a message…" autocomplete="off" data-i18n-placeholder="typeMessage">
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD PANEL -->
+  <div class="tab-panel" id="panel-dash">
+    <div class="dash-scroll">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-icon"><i class="fas fa-weight"></i></div><div class="stat-val" id="dWeight">--</div><div class="stat-lbl">Weight (kg)</div></div>
+        <div class="stat-card" id="bmiCard"><div class="stat-icon"><i class="fas fa-heartbeat"></i></div><div class="stat-val" id="dBMI">--</div><div class="stat-lbl">BMI</div></div>
+        <div class="stat-card o"><div class="stat-icon"><i class="fas fa-fire"></i></div><div class="stat-val" id="dCal">0</div><div class="stat-lbl">Cal. Burned</div></div>
+        <div class="stat-card g"><div class="stat-icon"><i class="fas fa-bolt"></i></div><div class="stat-val" id="dTDEE">--</div><div class="stat-lbl">Daily Calories</div></div>
+      </div>
+
+      <div class="dash-grid">
+        <!-- Progress Chart -->
+        <div class="dash-card">
+          <div class="dash-card-title"><i class="fas fa-chart-area"></i> Weight Progress</div>
+          <div class="chart-wrap"><canvas id="progressChart"></canvas></div>
+        </div>
+
+        <!-- Meal Plan -->
+        <div class="dash-card">
+          <div class="dash-card-title"><i class="fas fa-utensils"></i> Today's Meal Plan</div>
+          <div id="mealContent"><div style="text-align:center;padding:30px 0;color:var(--text-sub)"><i class="fas fa-utensils" style="font-size:34px;opacity:0.25"></i><p style="margin-top:10px;font-size:13px">Complete your profile to unlock your meal plan.</p></div></div>
+          <div class="lock-overlay" id="mealLock" style="display:none"><i class="fas fa-lock"></i><p>Upgrade to Basic or higher for your personalised daily meal plan</p><button onclick="openPremium()"><i class="fas fa-crown"></i> Upgrade Now</button></div>
+        </div>
+
+        <!-- Workout Plan -->
+        <div class="dash-card">
+          <div class="dash-card-title"><i class="fas fa-dumbbell"></i> Today's Workout</div>
+          <div id="workoutContent"><div style="text-align:center;padding:30px 0;color:var(--text-sub)"><i class="fas fa-dumbbell" style="font-size:34px;opacity:0.25"></i><p style="margin-top:10px;font-size:13px">Complete your profile to unlock your workout.</p></div></div>
+          <div class="lock-overlay" id="workoutLock" style="display:none"><i class="fas fa-lock"></i><p>Upgrade to Basic or higher for personalised workout schedules</p><button onclick="openPremium()"><i class="fas fa-crown"></i> Upgrade Now</button></div>
+        </div>
+
+        <!-- Gym & Gear Deals -->
+        <div class="dash-card">
+          <div class="dash-card-title"><i class="fas fa-tag"></i> Gym & Gear Deals</div>
+          <div id="dealsContent">
+            <div class="deal-row"><div class="deal-code">FITX50</div><div class="deal-info"><h5>50% OFF — Cult.fit</h5><p>Use at checkout on the app</p></div><button class="deal-btn" onclick="copyCode('FITX50')">Copy</button></div>
+            <div class="deal-row"><div class="deal-code">GYM30</div><div class="deal-info"><h5>30% OFF — Gold's Gym</h5><p>Valid till month end</p></div><button class="deal-btn" onclick="copyCode('GYM30')">Copy</button></div>
+            <div class="deal-row"><div class="deal-code">MB20</div><div class="deal-info"><h5>20% OFF — MuscleBlaze</h5><p>On all whey proteins</p></div><button class="deal-btn" onclick="copyCode('MB20')">Copy</button></div>
+          </div>
+          <div class="lock-overlay" id="dealsLock"><i class="fas fa-lock"></i><p>Upgrade to Pro or Elite for exclusive gym and gear discounts</p><button onclick="openPremium()"><i class="fas fa-crown"></i> Upgrade Now</button></div>
+        </div>
+
+        <!-- Spotify Playlists -->
+        <div class="dash-card" id="spotifyCard">
+          <div class="dash-card-title"><i class="fab fa-spotify" style="color:#1DB954"></i> Workout Playlists</div>
+          <div id="spotifyContent"><div style="text-align:center;padding:30px 0;color:var(--text-sub)"><i class="fab fa-spotify" style="font-size:34px;opacity:0.25"></i><p style="margin-top:10px;font-size:13px">Complete your profile to see playlists.</p></div></div>
+          <div class="lock-overlay" id="spotifyLock"><i class="fas fa-lock"></i><p>Upgrade to Basic or higher to access 100+ workout playlists</p><button onclick="openPremium()"><i class="fas fa-crown"></i> Upgrade Now</button></div>
+        </div>
+
+        <!-- YouTube Videos -->
+        <div class="dash-card" id="youtubeCard">
+          <div class="dash-card-title"><i class="fab fa-youtube" style="color:#FF0000"></i> Workout Videos</div>
+          <div id="youtubeContent"><div style="text-align:center;padding:30px 0;color:var(--text-sub)"><i class="fab fa-youtube" style="font-size:34px;opacity:0.25"></i><p style="margin-top:10px;font-size:13px">Complete your profile to see workout videos.</p></div></div>
+          <div class="lock-overlay" id="youtubeLock"><i class="fas fa-lock"></i><p>Upgrade to Pro or Elite to unlock full workout video library</p><button onclick="openPremium()"><i class="fas fa-crown"></i> Upgrade Now</button></div>
+        </div>
+
+        <!-- Advanced Analytics (Elite only) -->
+        <div class="dash-card" id="analyticsCard">
+          <div class="dash-card-title"><i class="fas fa-brain"></i> AI Body Analysis</div>
+          <div id="analyticsContent"><div style="text-align:center;padding:30px 0;color:var(--text-sub)"><i class="fas fa-brain" style="font-size:34px;opacity:0.25"></i><p style="margin-top:10px;font-size:13px">Advanced body composition analysis.</p></div></div>
+          <div class="lock-overlay" id="analyticsLock"><i class="fas fa-crown" style="color:#F59E0B"></i><p>Elite plan exclusive — AI-powered body analysis & macros breakdown</p><button onclick="openPremium()"><i class="fas fa-crown"></i> Get Elite</button></div>
+        </div>
+
+        <!-- Personal Trainer Chat (Elite only) -->
+        <div class="dash-card" id="trainerCard">
+          <div class="dash-card-title"><i class="fas fa-user-tie"></i> Personal Trainer 24×7</div>
+          <div id="trainerContent"><div style="text-align:center;padding:30px 0;color:var(--text-sub)"><i class="fas fa-user-tie" style="font-size:34px;opacity:0.25"></i><p style="margin-top:10px;font-size:13px">24×7 personal trainer access.</p></div></div>
+          <div class="lock-overlay" id="trainerLock"><i class="fas fa-crown" style="color:#7C3AED"></i><p>Elite plan exclusive — dedicated personal trainer available around the clock</p><button onclick="openPremium()"><i class="fas fa-crown"></i> Get Elite</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PREMIUM MODAL -->
+<div class="modal-bg" id="premiumModal" onclick="backdropClose(event,'premiumModal')">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closePremium()"><i class="fas fa-times"></i></button>
+    <div class="modal-title"><i class="fas fa-crown" style="color:var(--accent)"></i> Choose Your Plan</div>
+    <div class="modal-sub">Unlock premium AI features and supercharge your fitness journey!</div>
+    <div class="plans-grid">
+      <div class="plan-card" onclick="choosePlan('Basic','₹199',199)">
+        <div class="plan-name">Basic</div>
+        <div class="plan-price">₹199<span>/mo</span></div>
+        <ul class="plan-feats">
+          <li><i class="fas fa-check"></i> Ad-free experience</li>
+          <li><i class="fas fa-check"></i> Personalised Meal Plans</li>
+          <li><i class="fas fa-check"></i> Meal Swap (50+ options)</li>
+          <li><i class="fas fa-check"></i> Basic Workout Plans</li>
+          <li><i class="fas fa-check"></i> 100+ Spotify Playlists</li>
+          <li><i class="fas fa-check"></i> Weekly Progress Report</li>
+          <li><i class="fas fa-times" style="opacity:0.4"></i> <span style="opacity:0.5">Gym & Gear Discounts</span></li>
+          <li><i class="fas fa-times" style="opacity:0.4"></i> <span style="opacity:0.5">Workout Videos</span></li>
+          <li><i class="fas fa-times" style="opacity:0.4"></i> <span style="opacity:0.5">AI Body Analysis</span></li>
+        </ul>
+        <button class="plan-btn">Get Basic</button>
+      </div>
+      <div class="plan-card" onclick="choosePlan('Pro','₹499',499)">
+        <div class="plan-badge-card">⭐ POPULAR</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">₹499<span>/mo</span></div>
+        <ul class="plan-feats">
+          <li><i class="fas fa-check"></i> All Basic features</li>
+          <li><i class="fas fa-check"></i> AI Meal Plans 2.0</li>
+          <li><i class="fas fa-check"></i> AI Workout Schedules</li>
+          <li><i class="fas fa-check"></i> Gym & Gear Discounts</li>
+          <li><i class="fas fa-check"></i> 100+ Workout Videos</li>
+          <li><i class="fas fa-check"></i> Daily Motivation</li>
+          <li><i class="fas fa-check"></i> Advanced Progress Chart</li>
+          <li><i class="fas fa-times" style="opacity:0.4"></i> <span style="opacity:0.5">AI Body Analysis</span></li>
+          <li><i class="fas fa-times" style="opacity:0.4"></i> <span style="opacity:0.5">Personal Trainer 24×7</span></li>
+        </ul>
+        <button class="plan-btn">Get Pro</button>
+      </div>
+      <div class="plan-card elite" onclick="choosePlan('Elite','₹899',899)">
+        <div class="plan-badge-card">🏆 BEST VALUE</div>
+        <div class="plan-name">Elite</div>
+        <div class="plan-price">₹899<span>/mo</span></div>
+        <ul class="plan-feats">
+          <li><i class="fas fa-check"></i> All Pro features</li>
+          <li><i class="fas fa-check"></i> Personal Trainer 24×7</li>
+          <li><i class="fas fa-check"></i> AI Body Analysis</li>
+          <li><i class="fas fa-check"></i> Premium Gym Discounts</li>
+          <li><i class="fas fa-check"></i> Supplement Deals</li>
+          <li><i class="fas fa-check"></i> Challenges & Badges</li>
+          <li><i class="fas fa-check"></i> Priority Support</li>
+          <li><i class="fas fa-check"></i> Unlimited Meal Swaps</li>
+          <li><i class="fas fa-check"></i> Custom Macro Targets</li>
+        </ul>
+        <button class="plan-btn">Get Elite</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT MODAL -->
+<div class="modal-bg" id="paymentModal" onclick="backdropClose(event,'paymentModal')">
+  <div class="modal-box pay-box">
+    <button class="modal-close" onclick="closePayment()"><i class="fas fa-times"></i></button>
+    <div class="modal-title"><i class="fas fa-shield-alt" style="color:var(--brand)"></i> Secure Checkout</div>
+    <div class="modal-sub">Plan: <strong id="planLabel">—</strong> &nbsp;|&nbsp; Amount: <strong id="planPrice">₹0</strong></div>
+
+    <p style="font-size:13px;color:var(--text-sub);margin-bottom:0;text-align:center;font-weight:600;">Select Payment Method</p>
+    <div class="pay-methods-updated">
+      <div class="pay-method-tab" id="tabUPI" onclick="selectPayTab('UPI')">
+        <i class="fas fa-mobile-alt"></i><span>UPI</span>
+      </div>
+      <div class="pay-method-tab" id="tabCard" onclick="selectPayTab('Card')">
+        <i class="fas fa-credit-card"></i><span>Card</span>
+      </div>
+      <div class="pay-method-tab" id="tabNB" onclick="selectPayTab('NetBanking')">
+        <i class="fas fa-university"></i><span>Net Banking</span>
+      </div>
+    </div>
+
+    <!-- UPI -->
+    <div class="pay-method-content" id="payUPI">
+      <div class="upi-display-box">
+        <div class="upi-label">📲 Send payment to FitX UPI ID</div>
+        <div class="upi-qr"><i class="fas fa-qrcode" style="font-size:48px;opacity:0.85"></i></div>
+        <div class="upi-id">fitxcoach@axisbank</div>
+        <button class="upi-copy" onclick="copyUPI()"><i class="fas fa-copy"></i> Copy UPI ID</button>
+      </div>
+      <div class="pay-form-group">
+        <label class="pay-form-label"><i class="fas fa-mobile-alt" style="color:var(--brand)"></i> Your UPI ID <small style="color:var(--text-sub)">(e.g. name@upi)</small></label>
+        <input type="text" id="upiIdInput" class="pay-form-input" placeholder="yourname@okicici" autocomplete="off">
+      </div>
+      <div class="pay-form-group">
+        <label class="pay-form-label"><i class="fas fa-lock" style="color:var(--brand)"></i> UPI PIN</label>
+        <input type="password" id="upiPinInput" class="pay-form-input" placeholder="Enter 4 or 6 digit PIN" maxlength="6">
+      </div>
+      <button class="pay-submit-btn" onclick="submitUPIPayment()"><i class="fas fa-shield-alt"></i> Verify & Pay</button>
+      <p style="text-align:center;font-size:11px;color:var(--text-sub);margin-top:10px;">🔒 256-bit SSL secured · UPI payments processed instantly</p>
+    </div>
+
+    <!-- Card -->
+    <div class="pay-method-content" id="payCard">
+      <div class="card-preview" id="cardPreview">
+        <div class="card-chip"></div>
+        <div class="card-number-display" id="cardNumDisplay">•••• •••• •••• ••••</div>
+        <div class="card-bottom">
+          <div><div class="cb-label">Card Holder</div><div class="cb-val" id="cardNameDisplay">YOUR NAME</div></div>
+          <div><div class="cb-label">Expires</div><div class="cb-val" id="cardExpDisplay">MM/YY</div></div>
+        </div>
+      </div>
+      <div class="pay-form-group">
+        <label class="pay-form-label"><i class="fas fa-credit-card" style="color:var(--brand)"></i> Card Number</label>
+        <input type="text" id="cardNumInput" class="pay-form-input" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCard(this)" autocomplete="off">
+      </div>
+      <div class="pay-form-group">
+        <label class="pay-form-label"><i class="fas fa-user" style="color:var(--brand)"></i> Name on Card</label>
+        <input type="text" id="cardNameInput" class="pay-form-input" placeholder="FULL NAME" oninput="document.getElementById('cardNameDisplay').textContent=this.value.toUpperCase()||'YOUR NAME'">
+      </div>
+      <div class="pay-form-row">
+        <div class="pay-form-group">
+          <label class="pay-form-label"><i class="fas fa-calendar-alt" style="color:var(--brand)"></i> Expiry Date</label>
+          <input type="text" id="cardExpInput" class="pay-form-input" placeholder="MM / YY" maxlength="7" oninput="formatExpiry(this)">
+        </div>
+        <div class="pay-form-group">
+          <label class="pay-form-label"><i class="fas fa-lock" style="color:var(--brand)"></i> CVV</label>
+          <input type="password" id="cardCVVInput" class="pay-form-input" placeholder="•••" maxlength="4">
+        </div>
+      </div>
+      <button class="pay-submit-btn" onclick="submitCardPayment()"><i class="fas fa-lock"></i> Pay Securely</button>
+      <p style="text-align:center;font-size:11px;color:var(--text-sub);margin-top:10px;">🔒 Visa · Mastercard · RuPay · Amex accepted</p>
+    </div>
+
+    <!-- Net Banking -->
+    <div class="pay-method-content" id="payNB">
+      <div id="bankSelectView">
+        <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px;"><i class="fas fa-university" style="color:var(--brand)"></i> Select Your Bank</p>
+        <div class="bank-grid">
+          <div class="bank-card" onclick="selectBank('SBI','🏦')"><div class="bank-icon">🏦</div><div class="bank-name">SBI</div></div>
+          <div class="bank-card" onclick="selectBank('HDFC','🔵')"><div class="bank-icon">🔵</div><div class="bank-name">HDFC</div></div>
+          <div class="bank-card" onclick="selectBank('ICICI','🟠')"><div class="bank-icon">🟠</div><div class="bank-name">ICICI</div></div>
+          <div class="bank-card" onclick="selectBank('Axis','🟣')"><div class="bank-icon">🟣</div><div class="bank-name">Axis Bank</div></div>
+          <div class="bank-card" onclick="selectBank('Kotak','🔴')"><div class="bank-icon">🔴</div><div class="bank-name">Kotak</div></div>
+          <div class="bank-card" onclick="selectBank('PNB','🟡')"><div class="bank-icon">🟡</div><div class="bank-name">PNB</div></div>
+          <div class="bank-card" onclick="selectBank('BOB','🟤')"><div class="bank-icon">🟤</div><div class="bank-name">Bank of Baroda</div></div>
+          <div class="bank-card" onclick="selectBank('IndusInd','🟢')"><div class="bank-icon">🟢</div><div class="bank-name">IndusInd</div></div>
+          <div class="bank-card" onclick="selectBank('Yes Bank','⚪')"><div class="bank-icon">⚪</div><div class="bank-name">Yes Bank</div></div>
+        </div>
+      </div>
+      <div id="bankCredsView" style="display:none;">
+        <button class="pay-back-btn" onclick="document.getElementById('bankSelectView').style.display='block';document.getElementById('bankCredsView').style.display='none';"><i class="fas fa-arrow-left"></i> Change Bank</button>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;padding:12px 16px;background:var(--bg);border-radius:14px;">
+          <span id="selectedBankIcon" style="font-size:28px;"></span>
+          <div><div style="font-weight:700;font-size:14px;" id="selectedBankName">Bank</div><div style="font-size:12px;color:var(--text-sub);">Net Banking Login</div></div>
+        </div>
+        <div class="pay-form-group">
+          <label class="pay-form-label"><i class="fas fa-user" style="color:var(--brand)"></i> Customer ID / Username</label>
+          <input type="text" id="nbUserInput" class="pay-form-input" placeholder="Enter your customer ID">
+        </div>
+        <div class="pay-form-group">
+          <label class="pay-form-label"><i class="fas fa-key" style="color:var(--brand)"></i> Net Banking Password</label>
+          <input type="password" id="nbPassInput" class="pay-form-input" placeholder="Enter your password">
+        </div>
+        <div class="pay-form-group">
+          <label class="pay-form-label"><i class="fas fa-shield-alt" style="color:var(--brand)"></i> OTP (sent to registered mobile)</label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="nbOTPInput" class="pay-form-input" placeholder="6-digit OTP" maxlength="6" style="flex:1;">
+            <button onclick="sendOTP()" style="background:var(--bg);border:2px solid var(--brand);color:var(--brand);padding:0 16px;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:var(--font-body);">Send OTP</button>
+          </div>
+        </div>
+        <button class="pay-submit-btn" onclick="submitNBPayment()"><i class="fas fa-university"></i> Login & Pay</button>
+      </div>
+      <p style="text-align:center;font-size:11px;color:var(--text-sub);margin-top:10px;">🔒 Redirected to your bank's secure server</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- VIDEO CALL MODAL -->
+<div class="modal-bg" id="videoCallModal" onclick="backdropClose(event,'videoCallModal')">
+  <div class="modal-box vcall-modal">
+    <div class="vcall-header">
+      <div style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;" id="vcAvatarEl"></div>
+      <div><div class="vc-name" id="vcNameEl">Trainer</div><div class="vc-status" id="vcStatusEl">Connecting...</div></div>
+      <button style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,0.6);font-size:18px;cursor:pointer;" onclick="closeVideoCall()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="vcall-video-area">
+      <div class="vcall-bg"></div>
+      <div class="vcall-trainer-vid">
+        <div class="vc-trainer-avatar" id="vcBigAvatar" style="background:linear-gradient(135deg,#7C3AED,#4C1D95)"></div>
+        <div class="vc-calling" id="vcCallingText">📞 Calling...</div>
+      </div>
+      <div class="vcall-self">👤</div>
+      <div class="vcall-timer" id="vcTimer">00:00</div>
+    </div>
+    <div class="vcall-controls">
+      <button class="vc-ctrl mute" id="vcMicBtn" onclick="toggleMic(this)" title="Mute"><i class="fas fa-microphone"></i></button>
+      <button class="vc-ctrl cam" id="vcCamBtn" onclick="toggleCam(this)" title="Camera"><i class="fas fa-video"></i></button>
+      <button class="vc-ctrl end" onclick="closeVideoCall()" title="End Call"><i class="fas fa-phone-slash"></i></button>
+      <button class="vc-ctrl chat-btn" onclick="closeVideoCall();setTimeout(()=>document.getElementById('trainerChatModal').classList.add('open'),200);" title="Chat"><i class="fas fa-comment"></i></button>
+    </div>
+    <div class="vcall-body">
+      <p style="font-size:12px;color:var(--text-sub);text-align:center;">HD Video · End-to-End Encrypted · <span id="vcPlanNote" style="color:var(--brand);font-weight:600;">Elite Plan</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- TRAINER CHAT MODAL -->
+<div class="modal-bg" id="trainerChatModal" onclick="backdropClose(event,'trainerChatModal')">
+  <div class="modal-box tchat-modal">
+    <div class="tchat-header">
+      <div class="th-avatar" id="tcAvatarEl"></div>
+      <div>
+        <div class="th-name" id="tcNameEl">Trainer</div>
+        <div class="th-online">Online</div>
+      </div>
+      <button style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,0.6);font-size:18px;cursor:pointer;" onclick="closeTrainerChat()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="tchat-msgs" id="trainerChatMsgs"></div>
+    <div class="tchat-input-row">
+      <input type="text" id="trainerChatInput" class="tchat-inp" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendTrainerMsg()">
+      <button class="tchat-send" onclick="sendTrainerMsg()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- SESSION BOOKING MODAL -->
+<div class="modal-bg" id="sessionBookModal" onclick="backdropClose(event,'sessionBookModal')">
+  <div class="modal-box book-modal">
+    <button class="modal-close" onclick="document.getElementById('sessionBookModal').classList.remove('open')"><i class="fas fa-times"></i></button>
+    <div class="modal-title"><i class="fas fa-calendar-check" style="color:var(--brand)"></i> Book a Session</div>
+    <div class="modal-sub">Schedule a 1-on-1 session with your trainer</div>
+    <div class="book-trainer-info" id="bookTrainerInfo"></div>
+
+    <div class="book-section-title"><i class="fas fa-th-large"></i> Session Type</div>
+    <div class="session-types" id="sessionTypeGrid">
+      <div class="session-type selected" onclick="selectSessionType(this,'Video Call',30)" data-type="Video Call">
+        <span class="st-icon">📹</span><div class="st-name">Video Call</div><div class="st-dur">30 min</div>
+      </div>
+      <div class="session-type" onclick="selectSessionType(this,'Video Call',60)" data-type="Video Call">
+        <span class="st-icon">📹</span><div class="st-name">Extended Video</div><div class="st-dur">60 min</div>
+      </div>
+      <div class="session-type" onclick="selectSessionType(this,'Form Check',20)" data-type="Form Check">
+        <span class="st-icon">📋</span><div class="st-name">Form Check</div><div class="st-dur">20 min</div>
+      </div>
+      <div class="session-type" onclick="selectSessionType(this,'Plan Review',45)" data-type="Plan Review">
+        <span class="st-icon">📊</span><div class="st-name">Plan Review</div><div class="st-dur">45 min</div>
+      </div>
+    </div>
+
+    <div class="book-section-title"><i class="fas fa-calendar"></i> Pick a Date <span id="calMonthLabel" style="font-weight:400;color:var(--text-sub);font-size:12px;"></span></div>
+    <div class="booking-calendar" id="bookingCalendar"></div>
+
+    <div class="book-section-title"><i class="fas fa-clock"></i> Available Time Slots</div>
+    <div class="time-slots" id="timeSlots">
+      <div class="time-slot" onclick="selectSlot(this)">9:00 AM</div>
+      <div class="time-slot" onclick="selectSlot(this)">10:30 AM</div>
+      <div class="time-slot taken">12:00 PM</div>
+      <div class="time-slot" onclick="selectSlot(this)">2:00 PM</div>
+      <div class="time-slot" onclick="selectSlot(this)">3:30 PM</div>
+      <div class="time-slot taken">5:00 PM</div>
+      <div class="time-slot" onclick="selectSlot(this)">6:30 PM</div>
+      <div class="time-slot" onclick="selectSlot(this)">8:00 PM</div>
+    </div>
+    <button class="book-confirm-btn" onclick="confirmBooking()"><i class="fas fa-calendar-check"></i> Confirm Booking</button>
+  </div>
+</div>
+
+<!-- TRAINER PROFILE MODAL -->
+<div class="modal-bg" id="trainerProfileModal" onclick="backdropClose(event,'trainerProfileModal')">
+  <div class="modal-box profile-modal">
+    <button class="modal-close" onclick="document.getElementById('trainerProfileModal').classList.remove('open')"><i class="fas fa-times"></i></button>
+    <div id="trainerProfileContent"></div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-bg" id="settingsModal" onclick="backdropClose(event,'settingsModal')">
+  <div class="modal-box settings-box">
+    <button class="modal-close" onclick="closeSettings()"><i class="fas fa-times"></i></button>
+    <div class="modal-title"><i class="fas fa-cog" style="color:var(--brand)"></i> Settings</div>
+    <div class="modal-sub">Configure your FitX Coach experience</div>
+    <div class="setting-group">
+      <label class="setting-label"><i class="fas fa-building"></i> Brand Name</label>
+      <input type="text" id="brandEl" class="setting-input" value="FitX Coach" placeholder="Your brand name">
+    </div>
+    <div class="setting-group">
+      <label class="setting-label"><i class="fas fa-palette"></i> Brand Color</label>
+      <input type="color" id="colorEl" class="setting-input" value="#2563EB" style="height:48px;padding:6px 12px;cursor:pointer;">
+    </div>
+    <button class="setting-btn" onclick="saveSettings()"><i class="fas fa-save"></i> Save Settings</button>
+    <button class="setting-btn danger" onclick="resetAll()"><i class="fas fa-trash"></i> Reset All Data</button>
+  </div>
+</div>
+
+<!-- MEAL SWAP MODAL -->
+<div class="modal-bg" id="swapModal" onclick="backdropClose(event,'swapModal')">
+  <div class="modal-box swap-box">
+    <button class="modal-close" onclick="closeSwap()"><i class="fas fa-times"></i></button>
+    <div class="modal-title"><i class="fas fa-exchange-alt" style="color:var(--brand)"></i> Swap Your <span id="swapMealLabel">Meal</span></div>
+    <div class="modal-sub">Choose from 50+ healthy alternatives</div>
+    <input class="swap-search" id="swapSearch" placeholder="🔍 Search meals…" oninput="filterSwap()">
+    <div class="swap-filter" id="swapFilter">
+      <button class="filter-chip active" onclick="setSwapFilter('all',this)">All</button>
+      <button class="filter-chip" onclick="setSwapFilter('veg',this)">🥦 Veg</button>
+      <button class="filter-chip" onclick="setSwapFilter('vegan',this)">🌱 Vegan</button>
+      <button class="filter-chip" onclick="setSwapFilter('non-veg',this)">🍗 Non-Veg</button>
+      <button class="filter-chip" onclick="setSwapFilter('high-protein',this)">💪 High Protein</button>
+      <button class="filter-chip" onclick="setSwapFilter('low-carb',this)">🔥 Low Carb</button>
+    </div>
+    <div class="swap-list" id="swapList"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ══════════════════════════════════════════════
+   FITX COACH v2 — OFFLINE AI FITNESS TRAINER
+   No API key required — fully offline engine
+══════════════════════════════════════════════ */
+
+let S = {
+  step: 'greeting',
+  profile: {},
+  premium: false,
+  plan: '',
+  history: [],
+  locked: false,
+  chart: null,
+  pendingPlan: {},
+  swapMealIndex: -1,
+  swapFilter: 'all',
+  currentMeals: []
+};
+
+/* ══════════  MEAL DATABASE — 50+ OPTIONS  ══════════ */
+const MEAL_DB = [
+  // Breakfast options
+  { name:'Masala Oats', kcal:280, protein:10, tags:['veg','high-protein'], cat:'breakfast', desc:'With vegetables & spices' },
+  { name:'Poha', kcal:250, protein:7, tags:['veg'], cat:'breakfast', desc:'Flattened rice with peanuts' },
+  { name:'Idli + Sambar', kcal:220, protein:8, tags:['veg'], cat:'breakfast', desc:'3 idlis with sambar' },
+  { name:'Moong Dal Chilla', kcal:260, protein:14, tags:['veg','high-protein'], cat:'breakfast', desc:'Protein-packed crepes' },
+  { name:'Greek Yogurt Bowl', kcal:310, protein:18, tags:['veg','high-protein'], cat:'breakfast', desc:'With granola & berries' },
+  { name:'Egg White Omelette', kcal:180, protein:22, tags:['non-veg','high-protein','low-carb'], cat:'breakfast', desc:'4 egg whites with veggies' },
+  { name:'Banana Protein Shake', kcal:340, protein:28, tags:['veg','high-protein'], cat:'breakfast', desc:'With whey & almond milk' },
+  { name:'Upma', kcal:230, protein:6, tags:['veg'], cat:'breakfast', desc:'Semolina with vegetables' },
+  { name:'Sprouts Salad', kcal:160, protein:11, tags:['veg','vegan','high-protein'], cat:'breakfast', desc:'Mixed sprouts with lemon' },
+  { name:'Avocado Toast', kcal:320, protein:9, tags:['veg','vegan'], cat:'breakfast', desc:'Whole wheat with avocado' },
+  { name:'Boiled Eggs + Fruit', kcal:240, protein:18, tags:['non-veg','high-protein'], cat:'breakfast', desc:'2 eggs + seasonal fruit' },
+  { name:'Overnight Oats', kcal:300, protein:12, tags:['veg'], cat:'breakfast', desc:'Oats + milk + chia seeds' },
+  { name:'Besan Chilla', kcal:220, protein:13, tags:['veg','high-protein'], cat:'breakfast', desc:'Chickpea flour pancakes' },
+  // Lunch options
+  { name:'Dal Tadka + Rice', kcal:450, protein:18, tags:['veg','high-protein'], cat:'lunch', desc:'With 1 cup brown rice' },
+  { name:'Chicken Salad', kcal:380, protein:38, tags:['non-veg','high-protein','low-carb'], cat:'lunch', desc:'Grilled chicken, greens & dressing' },
+  { name:'Rajma Chawal', kcal:480, protein:20, tags:['veg','high-protein'], cat:'lunch', desc:'Kidney beans with rice' },
+  { name:'Quinoa Buddha Bowl', kcal:420, protein:16, tags:['veg','vegan'], cat:'lunch', desc:'Quinoa + roasted veggies' },
+  { name:'Grilled Fish + Salad', kcal:390, protein:42, tags:['non-veg','high-protein','low-carb'], cat:'lunch', desc:'Tilapia/Rohu with salad' },
+  { name:'Paneer Bhurji + Roti', kcal:460, protein:22, tags:['veg','high-protein'], cat:'lunch', desc:'Scrambled paneer + 2 rotis' },
+  { name:'Egg Fried Rice', kcal:410, protein:20, tags:['non-veg'], cat:'lunch', desc:'With mixed vegetables' },
+  { name:'Chole + Bhature', kcal:550, protein:18, tags:['veg'], cat:'lunch', desc:'Classic punjabi dish' },
+  { name:'Tofu Stir Fry', kcal:320, protein:20, tags:['veg','vegan','high-protein'], cat:'lunch', desc:'With bell peppers & soy sauce' },
+  { name:'Tuna Sandwich', kcal:360, protein:30, tags:['non-veg','high-protein'], cat:'lunch', desc:'Whole wheat with tuna salad' },
+  { name:'Palak Dal + Roti', kcal:380, protein:16, tags:['veg'], cat:'lunch', desc:'Spinach lentils + 2 rotis' },
+  { name:'Chicken Wrap', kcal:430, protein:34, tags:['non-veg','high-protein'], cat:'lunch', desc:'Grilled chicken in whole wheat wrap' },
+  { name:'Soya Chunks Curry', kcal:380, protein:26, tags:['veg','vegan','high-protein'], cat:'lunch', desc:'With rice or roti' },
+  { name:'Turkey Bowl', kcal:400, protein:40, tags:['non-veg','high-protein','low-carb'], cat:'lunch', desc:'Ground turkey + veggies + quinoa' },
+  { name:'Lentil Soup', kcal:290, protein:18, tags:['veg','vegan','high-protein'], cat:'lunch', desc:'With whole grain bread' },
+  // Dinner options
+  { name:'Grilled Chicken + Veggies', kcal:380, protein:44, tags:['non-veg','high-protein','low-carb'], cat:'dinner', desc:'Lean protein with steamed veg' },
+  { name:'Paneer Tikka', kcal:360, protein:22, tags:['veg','high-protein'], cat:'dinner', desc:'Marinated paneer with mint chutney' },
+  { name:'Salmon + Quinoa', kcal:440, protein:38, tags:['non-veg','high-protein'], cat:'dinner', desc:'Baked salmon with quinoa' },
+  { name:'Dal Makhani', kcal:420, protein:18, tags:['veg'], cat:'dinner', desc:'Slow-cooked black lentils' },
+  { name:'Egg Curry + Rice', kcal:460, protein:26, tags:['non-veg','high-protein'], cat:'dinner', desc:'2 eggs in rich gravy' },
+  { name:'Mushroom Stir Fry', kcal:280, protein:12, tags:['veg','vegan','low-carb'], cat:'dinner', desc:'With garlic and herbs' },
+  { name:'Chicken Soup', kcal:240, protein:28, tags:['non-veg','high-protein','low-carb'], cat:'dinner', desc:'Light and nutritious broth' },
+  { name:'Tofu Curry', kcal:320, protein:18, tags:['veg','vegan','high-protein'], cat:'dinner', desc:'In tomato-based gravy' },
+  { name:'Shrimp Stir Fry', kcal:300, protein:32, tags:['non-veg','high-protein','low-carb'], cat:'dinner', desc:'With bok choy and ginger' },
+  { name:'Methi Chicken', kcal:390, protein:36, tags:['non-veg','high-protein'], cat:'dinner', desc:'Fenugreek chicken curry' },
+  { name:'Lentil & Spinach', kcal:300, protein:16, tags:['veg','vegan'], cat:'dinner', desc:'Protein-rich lentil bowl' },
+  { name:'Baked Cod + Asparagus', kcal:310, protein:40, tags:['non-veg','high-protein','low-carb'], cat:'dinner', desc:'Light & nutrient-dense' },
+  // Snack options
+  { name:'Protein Bar', kcal:220, protein:20, tags:['veg','high-protein'], cat:'snack', desc:'Store-bought or homemade' },
+  { name:'Mixed Nuts', kcal:180, protein:6, tags:['veg','vegan','low-carb'], cat:'snack', desc:'Almonds, walnuts, cashews' },
+  { name:'Boiled Chana', kcal:150, protein:10, tags:['veg','vegan','high-protein'], cat:'snack', desc:'With lemon & spices' },
+  { name:'Banana + Peanut Butter', kcal:260, protein:8, tags:['veg'], cat:'snack', desc:'Classic energy snack' },
+  { name:'Cottage Cheese', kcal:140, protein:16, tags:['veg','high-protein','low-carb'], cat:'snack', desc:'With black pepper & herbs' },
+  { name:'Hard Boiled Eggs', kcal:140, protein:13, tags:['non-veg','high-protein','low-carb'], cat:'snack', desc:'2 eggs — simple & filling' },
+  { name:'Hummus + Veggies', kcal:190, protein:8, tags:['veg','vegan'], cat:'snack', desc:'Carrot, cucumber, celery' },
+  { name:'Makhana (Fox Nuts)', kcal:130, protein:5, tags:['veg','low-carb'], cat:'snack', desc:'Roasted with spices' },
+  { name:'Whey Protein Shake', kcal:180, protein:25, tags:['veg','high-protein','low-carb'], cat:'snack', desc:'With water or milk' },
+  { name:'Dark Chocolate', kcal:170, protein:3, tags:['veg','vegan'], cat:'snack', desc:'70%+ cacao, 30g' },
+  { name:'Edamame', kcal:150, protein:12, tags:['veg','vegan','high-protein'], cat:'snack', desc:'Steamed salted soy beans' },
+  { name:'Rice Cakes + Almond Butter', kcal:200, protein:7, tags:['veg','vegan'], cat:'snack', desc:'Light & crunchy' },
+];
+
+/* ══════════  SPOTIFY PLAYLISTS — 100+  ══════════ */
+const SPOTIFY_PLAYLISTS = {
+  all: [
+    { name:'Beast Mode', desc:'Hardcore gym anthems', emoji:'🔥', url:'https://open.spotify.com/playlist/37i9dQZF1DX76Wlfdnj7AP' },
+    { name:'Power Workout', desc:'High-energy training', emoji:'⚡', url:'https://open.spotify.com/playlist/37i9dQZF1DX2RxBh64BHjQ' },
+    { name:'Motivation Mix', desc:'Push your limits', emoji:'💪', url:'https://open.spotify.com/playlist/37i9dQZF1DX3rxVfibe1L0' },
+    { name:'Running Hits', desc:'Perfect for cardio', emoji:'🏃', url:'https://open.spotify.com/playlist/37i9dQZF1DWZeKCadgRdKQ' },
+    { name:'Hip Hop Workout', desc:'Trap & hip hop beats', emoji:'🎤', url:'https://open.spotify.com/playlist/37i9dQZF1DX2RxBh64BHjQ' },
+    { name:'Rock Workout', desc:'Classic rock energy', emoji:'🎸', url:'https://open.spotify.com/playlist/37i9dQZF1DXdxcBWuJkbcy' },
+    { name:'EDM Training', desc:'Electronic drops', emoji:'🎧', url:'https://open.spotify.com/playlist/37i9dQZF1DX32NsLKyzScr' },
+    { name:'Morning Run', desc:'Light & energetic', emoji:'🌅', url:'https://open.spotify.com/playlist/37i9dQZF1DX0HRj9P7NxeE' },
+    { name:'HIIT Playlist', desc:'Interval workout beats', emoji:'🔁', url:'https://open.spotify.com/playlist/37i9dQZF1DX5Ejj0EkURtP' },
+    { name:'Bollywood Fitness', desc:'Desi workout energy', emoji:'🎵', url:'https://open.spotify.com/playlist/37i9dQZF1DXdgz8ZB7c2CP' },
+    { name:'Yoga & Chill', desc:'Calm & focused flow', emoji:'🧘', url:'https://open.spotify.com/playlist/37i9dQZF1DX9uKNf5jGX6m' },
+    { name:'Strength Training', desc:'Heavy lifting tunes', emoji:'🏋️', url:'https://open.spotify.com/playlist/37i9dQZF1DX76Wlfdnj7AP' },
+    { name:'Cardio Blast', desc:'Non-stop cardio', emoji:'💥', url:'https://open.spotify.com/playlist/37i9dQZF1DXdxcBWuJkbcy' },
+    { name:'Pop Workout', desc:'Chart-topping hits', emoji:'🎶', url:'https://open.spotify.com/playlist/37i9dQZF1DX2RxBh64BHjQ' },
+    { name:'Metal Gym', desc:'For the iron warriors', emoji:'⚔️', url:'https://open.spotify.com/playlist/37i9dQZF1DX9GRpeH58VB4' },
+    { name:'Crossfit Energy', desc:'WOD ready', emoji:'🎯', url:'https://open.spotify.com/playlist/37i9dQZF1DX76Wlfdnj7AP' },
+    { name:'Swimming & Aqua', desc:'Flow in the water', emoji:'🏊', url:'https://open.spotify.com/playlist/37i9dQZF1DX32NsLKyzScr' },
+    { name:'Cycling Jams', desc:'Spin class bangers', emoji:'🚴', url:'https://open.spotify.com/playlist/37i9dQZF1DWZeKCadgRdKQ' },
+    { name:'Boxing Workout', desc:'Fight training energy', emoji:'🥊', url:'https://open.spotify.com/playlist/37i9dQZF1DX5Ejj0EkURtP' },
+    { name:'Post-Workout Chill', desc:'Cool down & recover', emoji:'😌', url:'https://open.spotify.com/playlist/37i9dQZF1DX9uKNf5jGX6m' },
+  ],
+  // Extended by workout type
+  yoga: [
+    { name:'Yoga Flow', desc:'Gentle & mindful', emoji:'🌸', url:'https://open.spotify.com/playlist/37i9dQZF1DX9uKNf5jGX6m' },
+    { name:'Meditation Sounds', desc:'Deep focus', emoji:'🕉️', url:'https://open.spotify.com/playlist/37i9dQZF1DX3Qs8B1GfCBl' },
+    { name:'Pranayama Music', desc:'Breathing exercises', emoji:'🌬️', url:'https://open.spotify.com/playlist/37i9dQZF1DX6ziVCJnEm59' },
+    { name:'Mindful Stretch', desc:'Flexibility & calm', emoji:'🤸', url:'https://open.spotify.com/playlist/37i9dQZF1DX9GRpeH58VB4' },
+  ],
+  cardio: [
+    { name:'Cardio Non-Stop', desc:'Keeps your HR up', emoji:'❤️', url:'https://open.spotify.com/playlist/37i9dQZF1DXdxcBWuJkbcy' },
+    { name:'5K Runner', desc:'Perfect pace music', emoji:'👟', url:'https://open.spotify.com/playlist/37i9dQZF1DWZeKCadgRdKQ' },
+    { name:'Marathon Mix', desc:'Long distance beats', emoji:'🏅', url:'https://open.spotify.com/playlist/37i9dQZF1DX0HRj9P7NxeE' },
+    { name:'Aerobics Classics', desc:'80s & 90s aerobics', emoji:'🌟', url:'https://open.spotify.com/playlist/37i9dQZF1DX32NsLKyzScr' },
+  ],
+  gym: [
+    { name:'Pump Iron', desc:'Deadlift & bench press', emoji:'🏋️', url:'https://open.spotify.com/playlist/37i9dQZF1DX76Wlfdnj7AP' },
+    { name:'Gym Rap', desc:'Trap beats for gains', emoji:'🎤', url:'https://open.spotify.com/playlist/37i9dQZF1DX2RxBh64BHjQ' },
+    { name:'Bro Science Mix', desc:'Classic gym tunes', emoji:'💊', url:'https://open.spotify.com/playlist/37i9dQZF1DX9GRpeH58VB4' },
+    { name:'Gold\'s Gym Classics', desc:'Bodybuilder era', emoji:'🥇', url:'https://open.spotify.com/playlist/37i9dQZF1DXdxcBWuJkbcy' },
+  ]
+};
+
+/* ══════════  YOUTUBE VIDEOS — 100+  ══════════ */
+const YOUTUBE_VIDEOS = {
+  all: [
+    { name:'Full Body Workout (30 min)', channel:'Athlean-X', emoji:'💪', url:'https://www.youtube.com/results?search_query=full+body+workout+30+minutes' },
+    { name:'HIIT Cardio Blast', channel:'Fitness Blender', emoji:'🔥', url:'https://www.youtube.com/results?search_query=hiit+cardio+workout' },
+    { name:'Beginner Gym Guide', channel:'Jeff Nippard', emoji:'🏋️', url:'https://www.youtube.com/results?search_query=beginner+gym+guide' },
+    { name:'Core & Abs Shred', channel:'MadFit', emoji:'🎯', url:'https://www.youtube.com/results?search_query=abs+workout+no+equipment' },
+    { name:'Morning Yoga Flow', channel:'Yoga with Adriene', emoji:'🧘', url:'https://www.youtube.com/results?search_query=morning+yoga+flow+beginner' },
+    { name:'Chest & Triceps Day', channel:'Scott Herman', emoji:'💥', url:'https://www.youtube.com/results?search_query=chest+triceps+workout' },
+    { name:'Leg Day Massacre', channel:'Chris Bumstead', emoji:'🦵', url:'https://www.youtube.com/results?search_query=leg+day+workout+gym' },
+    { name:'Back & Biceps', channel:'Athlean-X', emoji:'🎽', url:'https://www.youtube.com/results?search_query=back+biceps+workout' },
+    { name:'Shoulder Press Tutorial', channel:'Jeremy Ethier', emoji:'⚡', url:'https://www.youtube.com/results?search_query=shoulder+press+form+tips' },
+    { name:'Burpee Circuit (20 min)', channel:'Chloe Ting', emoji:'🕐', url:'https://www.youtube.com/results?search_query=burpee+circuit+workout' },
+    { name:'Running Form Tips', channel:'Global Triathlon', emoji:'🏃', url:'https://www.youtube.com/results?search_query=running+form+improvement' },
+    { name:'Weight Loss Cardio', channel:'Growingannanas', emoji:'⬇️', url:'https://www.youtube.com/results?search_query=weight+loss+cardio+workout' },
+    { name:'Muscle Building 101', channel:'Renaissance Periodization', emoji:'📚', url:'https://www.youtube.com/results?search_query=muscle+building+tips+beginners' },
+    { name:'Deadlift Masterclass', channel:'Alan Thrall', emoji:'🏆', url:'https://www.youtube.com/results?search_query=deadlift+form+tutorial' },
+    { name:'Squat Variations Guide', channel:'Squat University', emoji:'🔄', url:'https://www.youtube.com/results?search_query=squat+variations+guide' },
+    { name:'Home Workout No Equipment', channel:'Pamela Reif', emoji:'🏠', url:'https://www.youtube.com/results?search_query=home+workout+no+equipment+female' },
+    { name:'Pull-Up Progression', channel:'Thenx', emoji:'↑', url:'https://www.youtube.com/results?search_query=pull+up+progression+beginner' },
+    { name:'Flexibility & Stretching', channel:'Tom Merrick', emoji:'🤸', url:'https://www.youtube.com/results?search_query=full+body+stretching+routine' },
+    { name:'Meal Prep Guide', channel:'Mario Tomic', emoji:'🍱', url:'https://www.youtube.com/results?search_query=fitness+meal+prep+guide' },
+    { name:'Gym Motivation Compilation', channel:'Bodybuilding.com', emoji:'🌟', url:'https://www.youtube.com/results?search_query=gym+motivation+2024' },
+  ],
+  yoga: [
+    { name:'Yoga for Beginners (60 min)', channel:'Yoga with Adriene', emoji:'🌸', url:'https://www.youtube.com/results?search_query=yoga+for+beginners+60+minutes' },
+    { name:'Sun Salutation A & B', channel:'Kino Yoga', emoji:'☀️', url:'https://www.youtube.com/results?search_query=sun+salutation+tutorial' },
+    { name:'Yin Yoga for Recovery', channel:'Travis Eliot', emoji:'🌙', url:'https://www.youtube.com/results?search_query=yin+yoga+recovery' },
+    { name:'Yoga for Stress Relief', channel:'Yoga with Kassandra', emoji:'💆', url:'https://www.youtube.com/results?search_query=yoga+stress+relief' },
+  ],
+  cardio: [
+    { name:'10km Run Training Plan', channel:'Sage Running', emoji:'🏃', url:'https://www.youtube.com/results?search_query=10km+run+training' },
+    { name:'Jump Rope Beginner to Pro', channel:'CrossRope', emoji:'🪢', url:'https://www.youtube.com/results?search_query=jump+rope+workout+beginner' },
+    { name:'Cycling Interval Training', channel:'GCN', emoji:'🚴', url:'https://www.youtube.com/results?search_query=cycling+interval+training' },
+    { name:'Dance Cardio Workout', channel:'BollyX', emoji:'💃', url:'https://www.youtube.com/results?search_query=dance+cardio+workout' },
+  ],
+  strength: [
+    { name:'5x5 Stronglifts Program', channel:'Mehdi 5x5', emoji:'⚙️', url:'https://www.youtube.com/results?search_query=stronglifts+5x5+program' },
+    { name:'Progressive Overload Tips', channel:'Jeff Nippard', emoji:'📈', url:'https://www.youtube.com/results?search_query=progressive+overload+explained' },
+    { name:'Powerlifting for Beginners', channel:'Calgary Barbell', emoji:'🏅', url:'https://www.youtube.com/results?search_query=powerlifting+beginner+guide' },
+    { name:'Bench Press 100kg Guide', channel:'Jonnie Candito', emoji:'💯', url:'https://www.youtube.com/results?search_query=bench+press+100kg+guide' },
+  ],
+  home: [
+    { name:'7-Day Home Challenge', channel:'Chloe Ting', emoji:'📅', url:'https://www.youtube.com/results?search_query=7+day+home+workout+challenge' },
+    { name:'Resistance Band Full Body', channel:'Heather Robertson', emoji:'🟡', url:'https://www.youtube.com/results?search_query=resistance+band+full+body+workout' },
+    { name:'Pilates Core (30 min)', channel:'Nicole Pearce', emoji:'🌀', url:'https://www.youtube.com/results?search_query=pilates+core+workout+30+minutes' },
+    { name:'Bodyweight Strength Circuits', channel:'Tom Merrick', emoji:'🔋', url:'https://www.youtube.com/results?search_query=bodyweight+strength+circuit' },
+  ],
+};
+
+/* ══════════  CHAT FLOW  ══════════ */
+const FLOW = {
+  greeting: {
+    text: `Hey there, champion! 💪 I'm your <strong>FitX Coach</strong> — your personal AI fitness trainer.<br><br>Let's build your personalised plan! First, what's your <strong>name</strong>?`,
+    validate: v => v.trim().length >= 2 ? null : 'Please enter a valid name (at least 2 characters).',
+    save: v => { S.profile.name = v.trim(); }, next: 'age'
+  },
+  age: {
+    text: p => `Great to meet you, <strong>${p.name}</strong>! 🔥<br>How old are you? <small style="color:var(--text-sub)">(10–100)</small>`,
+    validate: v => { const n=+v; return !isNaN(n)&&n>=10&&n<=100?null:'Please enter a valid age between 10 and 100.'; },
+    save: v => { S.profile.age = +v; }, next: 'gender'
+  },
+  gender: {
+    text: 'What\'s your <strong>gender</strong>?',
+    options: ['Male','Female','Non-binary','Prefer not to say'],
+    save: v => { S.profile.gender = v; }, next: 'weight'
+  },
+  weight: {
+    text: 'What\'s your current <strong>weight in kg</strong>? <small style="color:var(--text-sub)">(e.g. 70)</small>',
+    validate: v => { const n=+v; return !isNaN(n)&&n>=20&&n<=300?null:'Please enter a valid weight between 20–300 kg.'; },
+    save: v => { S.profile.weight = parseFloat(parseFloat(v).toFixed(1)); }, next: 'height'
+  },
+  height: {
+    text: 'And your <strong>height in cm</strong>? <small style="color:var(--text-sub)">(e.g. 175)</small>',
+    validate: v => { const n=+v; return !isNaN(n)&&n>=50&&n<=250?null:'Please enter a valid height between 50–250 cm.'; },
+    save: v => { S.profile.height = parseFloat(parseFloat(v).toFixed(1)); }, next: 'diet'
+  },
+  diet: {
+    text: 'What\'s your <strong>dietary preference</strong>?',
+    options: ['Vegetarian 🥦','Vegan 🌱','Non-Vegetarian 🍗','Eggetarian 🥚','No Preference 🍽️'],
+    save: v => { S.profile.diet = v; }, next: 'activity'
+  },
+  activity: {
+    text: 'What\'s your daily <strong>activity level</strong>?',
+    options: ['Sedentary 🪑','Lightly Active 🚶','Moderately Active 🏃','Very Active ⚡','Extremely Active 🔥'],
+    save: v => { S.profile.activity = v; }, next: 'workoutType'
+  },
+  workoutType: {
+    text: 'What type of <strong>workout</strong> do you prefer?',
+    options: ['Home Workout 🏠','Gym 🏋️','Cardio 🏃‍♂️','Strength Training 💪','Yoga 🧘','Mixed 🔀'],
+    save: v => { S.profile.workoutType = v; }, next: 'workoutTime'
+  },
+  workoutTime: {
+    text: 'When do you usually like to <strong>workout</strong>?',
+    options: ['Early Morning 🌅','Morning ☀️','Afternoon 🌤️','Evening 🌆','Night 🌙'],
+    save: v => { S.profile.workoutTime = v; }, next: 'duration'
+  },
+  duration: {
+    text: 'How many <strong>minutes per session</strong>? <small style="color:var(--text-sub)">(10–300 min)</small>',
+    validate: v => { const n=+v; return !isNaN(n)&&n>=10&&n<=300?null:'Please enter a duration between 10 and 300 minutes.'; },
+    save: v => { S.profile.duration = +v; }, next: 'goal'
+  },
+  goal: {
+    text: 'What\'s your <strong>primary fitness goal</strong>?',
+    options: ['Lose Weight ⬇️','Build Muscle 💪','Improve Endurance 🏅','Stay Healthy 🌿','Increase Flexibility 🤸'],
+    save: v => { S.profile.goal = v; }, next: 'photo'
+  },
+  photo: {
+    text: 'Almost done! Want to upload a <strong>progress photo</strong>? (Optional — great for tracking)',
+    hasUpload: true, next: 'complete'
+  }
+};
+
+/* ══════════  INIT  ══════════ */
+window.addEventListener('load', () => {
+  document.getElementById('chatInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+  showStep('greeting');
+});
+
+/* ══════════  TAB NAV  ══════════ */
+function switchTab(t) {
+  ['chat','dash'].forEach(id => {
+    document.getElementById('panel-'+id).classList.toggle('active', id === t);
+    document.getElementById('tab-'+id).classList.toggle('active', id === t);
+  });
+  if (t === 'dash') refreshDash();
+}
+
+/* ══════════  RENDER  ══════════ */
+function addBot(html, opts={}) {
+  const c = document.getElementById('chatMessages');
+  const d = document.createElement('div');
+  d.className = 'message bot';
+  let extras = '';
+  if (opts.options) {
+    extras += `<div class="chips">`;
+    opts.options.forEach(o => { extras += `<button class="chip" onclick="pickOption('${esc(o)}')">${o}</button>`; });
+    extras += `</div>`;
+  }
+  if (opts.hasUpload) {
+    extras += `<div class="upload-area">
+      <label class="upload-lbl"><i class="fas fa-camera"></i> <span data-upload-lbl>Upload Photo</span><input type="file" accept="image/*" onchange="onPhoto(event)"></label>
+      <button class="chip" onclick="skipPhoto()" data-skip-lbl>Skip →</button>
+    </div>`;
+  }
+  d.innerHTML = `<div class="av"><i class="fas fa-robot"></i></div><div class="bubble">${html}${extras}<span class="ts">${now()}</span></div>`;
+  // Apply translations to dynamic upload labels
+  d.querySelectorAll('[data-upload-lbl]').forEach(el => el.textContent = t('uploadPhoto'));
+  d.querySelectorAll('[data-skip-lbl]').forEach(el => el.textContent = t('skipPhoto'));
+  c.appendChild(d); scroll();
+}
+function addUser(text) {
+  const c = document.getElementById('chatMessages');
+  const d = document.createElement('div');
+  d.className = 'message user';
+  d.innerHTML = `<div class="bubble">${safe(text)}<span class="ts">${now()}</span></div><div class="av"><i class="fas fa-user"></i></div>`;
+  c.appendChild(d); scroll();
+}
+function addError(msg) {
+  const c = document.getElementById('chatMessages');
+  const d = document.createElement('div');
+  d.className = 'err-bubble';
+  d.innerHTML = `⚠️ ${msg}`;
+  c.appendChild(d); scroll();
+}
+function showTyping() {
+  const c = document.getElementById('chatMessages');
+  const d = document.createElement('div');
+  d.className = 'typing-row'; d.id = 'typingEl';
+  d.innerHTML = `<div class="av"><i class="fas fa-robot"></i></div><div class="typing-dots"><span></span><span></span><span></span></div>`;
+  c.appendChild(d); scroll();
+}
+function hideTyping() { const el = document.getElementById('typingEl'); if(el) el.remove(); }
+function disableChips() { document.querySelectorAll('.chip').forEach(c => { c.disabled=true; c.style.pointerEvents='none'; c.style.opacity='0.45'; }); }
+
+/* ══════════  FLOW LOGIC  ══════════ */
+function showStep(key) {
+  S.step = key;
+  const step = FLOW[key];
+  const text = typeof step.text === 'function' ? step.text(S.profile) : step.text;
+  addBot(text, { options: step.options, hasUpload: step.hasUpload });
+}
+function sendMessage() {
+  if (S.locked) return;
+  const inp = document.getElementById('chatInput');
+  const val = inp.value.trim();
+  if (!val) return;
+  inp.value = '';
+  processInput(val, false);
+}
+function pickOption(opt) { disableChips(); addUser(opt); processInput(opt, true); }
+function processInput(text, fromBtn) {
+  const step = FLOW[S.step];
+  if (!step || S.step === 'free') { if (!fromBtn) addUser(text); freeChat(text); return; }
+  if (!fromBtn && step.validate) { const err = step.validate(text); if (err) { addUser(text); addError(err); return; } }
+  if (!fromBtn) addUser(text);
+  if (step.save) step.save(text);
+  S.locked = true;
+  setTimeout(() => { S.locked = false; step.next === 'complete' ? finishOnboarding() : showStep(step.next); }, 380);
+}
+function onPhoto(e) {
+  const f = e.target.files[0]; if (!f) return;
+  disableChips(); addUser(`📸 Uploaded: ${f.name}`); S.profile.photo = true;
+  showTyping();
+  setTimeout(() => { hideTyping(); addBot('📸 Photo saved! I\'ll use this for visual progress tracking. ✅'); setTimeout(finishOnboarding, 500); }, 1400);
+}
+function skipPhoto() { disableChips(); addUser('Skip photo'); S.profile.photo = false; setTimeout(finishOnboarding, 350); }
+
+function finishOnboarding() {
+  const p = S.profile;
+  const bmi = (p.weight / Math.pow(p.height/100, 2)).toFixed(1);
+  const bmiLabel = +bmi<18.5?'Underweight 🔵':+bmi<25?'Healthy ✅':+bmi<30?'Overweight 🟡':'Obese 🔴';
+  p.bmi = parseFloat(bmi); p.bmiLabel = bmiLabel;
+  // Activity multipliers — match by index position in activityOpts since locale may differ
+  const actMulValues = [1.2, 1.375, 1.55, 1.725, 1.9];
+  const enActOpts = TRANSLATIONS.en.activityOpts;
+  let actIdx = enActOpts.findIndex(o => o === p.activity);
+  if (actIdx < 0) {
+    const locActOpts = t('activityOpts');
+    actIdx = locActOpts.findIndex(o => o === p.activity);
+  }
+  const actMul = actMulValues[actIdx] || 1.55;
+  const femaleGenders = ['Female','महिला','महिला','பெண்','స్త్రీ','মহিলা','Femenino','Femme','Weiblich','Feminino','أنثى','女性','女性'];
+  const nbGenders = ['Non-binary','नॉन-बाइनरी','नॉन-बायनरी','நான்-பைனரி','నాన్-బైనరీ','নন-বাইনারি','No binario','Non-binaire','Nicht-binär','Não-binário','غير ثنائي','非二元性别','ノンバイナリー'];
+  const isFemale = femaleGenders.includes(p.gender) || nbGenders.includes(p.gender);
+  const bmr = isFemale ? 10*p.weight+6.25*p.height-5*p.age-161 : 10*p.weight+6.25*p.height-5*p.age+5;
+  p.tdee = Math.round(bmr * actMul);
+  const msg = t('profileComplete', p, bmi, bmiLabel);
+  addBot(msg);
+  S.step = 'free';
+  refreshDash();
+  toast('🎉', t('profileCompleteToastTitle'), t('profileCompleteToast', p.name));
+}
+
+/* ══════════  OFFLINE FREE CHAT  ══════════ */
+function freeChat(text) {
+  const lower = text.toLowerCase();
+  if (lower.includes('premium')||lower.includes('upgrade')||lower.includes('pricing')) {
+    openPremium(); addBot('Here\'s our Premium plans — pick the one that fits you best! 💎'); return;
+  }
+  showTyping();
+  setTimeout(() => {
+    hideTyping();
+    const p = S.profile;
+    let reply = '';
+    if (lower.match(/meal|diet|food|eat|nutrition|breakfast|lunch|dinner/)) {
+      const goal = p.goal||'stay fit'; const cal = p.tdee||2000;
+      reply = `For your goal of <strong>${goal}</strong>, target ~${Math.round(cal*0.88)} kcal/day with high protein. Check your Dashboard for today's full meal plan with swap options! 🍱`;
+    } else if (lower.match(/workout|exercise|train|gym|cardio|yoga|weights/)) {
+      reply = `With <strong>${p.workoutType||'your workout'}</strong> for ${p.duration||45} min, you're building a great routine! Check the Dashboard for your full workout plan & video library. 💪`;
+    } else if (lower.match(/bmi|weight|fat|obese|overweight/)) {
+      reply = `Your BMI is <strong>${p.bmi||'--'}</strong> — ${p.bmiLabel||'calculating'}. ${+p.bmi<18.5?'Focus on lean muscle gain.':+p.bmi<25?'You\'re in a healthy range — keep it up!':'A calorie deficit + cardio is the key.'} 🔥`;
+    } else if (lower.match(/playlist|music|spotify|song/)) {
+      reply = `Check your Dashboard's Workout Playlists section for 100+ curated Spotify playlists tailored to your workout type! 🎵 Basic plan unlocks them all.`;
+    } else if (lower.match(/video|youtube|watch/)) {
+      reply = `Your Dashboard has 100+ YouTube workout videos matched to your fitness style! Upgrade to Pro or Elite to unlock the full video library. 🎬`;
+    } else if (lower.match(/swap|replace|alternative|change meal/)) {
+      reply = `Head to your Dashboard's Meal Plan and tap the <strong>Swap</strong> button on any meal — you'll get 50+ alternatives filtered by your diet preference! 🔄`;
+    } else if (lower.match(/plan|premium|pro|elite|basic/)) {
+      reply = `We have 3 plans: <strong>Basic ₹199</strong> (meal plans + playlists), <strong>Pro ₹499</strong> (+ videos + deals), <strong>Elite ₹899</strong> (+ personal trainer + body analysis). Which interests you?`;
+    } else if (lower.match(/water|hydrat/)) {
+      reply = `💧 Aim for ${Math.round((p.weight||70)*0.033)}L of water daily based on your weight. Hydration boosts performance by up to 20%!`;
+    } else if (lower.match(/sleep|rest|recovery/)) {
+      reply = `😴 Aim for 7–9 hours of sleep. Recovery is where your muscles actually grow — it's just as important as training!`;
+    } else if (lower.match(/protein|macro|carb/)) {
+      reply = `For ${p.goal?.includes('Muscle')?'muscle gain':'your goal'}, aim for ~${Math.round((p.weight||70)*1.8)}g protein/day. Track macros in your Dashboard! 📊`;
+    } else {
+      const msgs = [
+        `Consistency beats intensity every time, ${p.name||'champ'}! 💯 Small daily wins compound into huge results.`,
+        `Remember: rest is part of the plan. Recovery is where muscles grow! 😴 Don't skip rest days.`,
+        `You're doing amazing, ${p.name||'champion'}! 🏆 Check your Dashboard to see your full plan.`,
+        `Fuel your body right, train with purpose, rest well — that's the FitX formula! 🔥`
+      ];
+      reply = msgs[Math.floor(Math.random()*msgs.length)];
+    }
+    addBot(reply);
+  }, 700);
+}
+
+/* ══════════  DASHBOARD  ══════════ */
+function refreshDash() {
+  const p = S.profile;
+  if (!p.weight) return;
+  document.getElementById('dWeight').textContent = p.weight+' kg';
+  document.getElementById('dBMI').textContent = p.bmi;
+  document.getElementById('dTDEE').textContent = (p.tdee||'--')+' kcal';
+  const bc = document.getElementById('bmiCard');
+  bc.className = 'stat-card '+(+p.bmi<18.5?'y':+p.bmi<25?'g':+p.bmi<30?'y':'r');
+  animCount('dCal',0,Math.round((p.duration||45)*7.5),1800,'');
+  buildChart();
+  applyPlanFeatures();
+}
+
+function applyPlanFeatures() {
+  const plan = S.plan; // 'Basic', 'Pro', 'Elite', or ''
+  const p = S.profile;
+
+  // Feature access by plan
+  const hasMeals     = S.premium; // Basic+
+  const hasWorkout   = S.premium; // Basic+
+  const hasSpotify   = S.premium; // Basic+
+  const hasDeals     = plan==='Pro'||plan==='Elite';
+  const hasVideos    = plan==='Pro'||plan==='Elite';
+  const hasAnalytics = plan==='Elite';
+  const hasTrainer   = plan==='Elite';
+
+  const setLock = (id, locked) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = locked ? 'flex' : 'none';
+  };
+
+  setLock('mealLock', !hasMeals);
+  setLock('workoutLock', !hasWorkout);
+  setLock('spotifyLock', !hasSpotify);
+  setLock('dealsLock', !hasDeals);
+  setLock('youtubeLock', !hasVideos);
+  setLock('analyticsLock', !hasAnalytics);
+  setLock('trainerLock', !hasTrainer);
+
+  if (hasMeals)     buildMeals();     else buildMealsPreview();
+  if (hasWorkout)   buildWorkout();   else buildWorkoutPreview();
+  if (hasSpotify)   buildSpotify();   else buildSpotifyPreview();
+  if (hasVideos)    buildYoutube();   else buildYoutubePreview();
+  if (hasAnalytics) buildAnalytics(); else buildAnalyticsPreview();
+  if (hasTrainer)   buildTrainer();   else buildTrainerPreview();
+}
+
+/* ══════════  CHART  ══════════ */
+function buildChart() {
+  const ctx = document.getElementById('progressChart'); if (!ctx) return;
+  if (S.chart) { S.chart.destroy(); }
+  const p = S.profile; const base = p.weight||70;
+  const d = (p.goal||'').includes('Lose')?-0.55:(p.goal||'').includes('Muscle')?0.35:-0.2;
+  const labels = ['W1','W2','W3','W4','W5','W6'];
+  const data = labels.map((_,i) => +(base+d*i).toFixed(1));
+  S.chart = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets:[{ label:'Weight (kg)', data, borderColor:'#2563EB', backgroundColor:'rgba(37,99,235,0.08)', borderWidth:2.5, pointBackgroundColor:'#2563EB', tension:0.4, fill:true }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ font:{size:12} } } }, scales:{ y:{ beginAtZero:false, grid:{ color:'rgba(0,0,0,0.04)' } } } }
+  });
+}
+
+/* ══════════  MEALS (Diet-aware)  ══════════ */
+function getMealsByDiet(cat) {
+  const diet = (S.profile.diet||'').toLowerCase();
+  const isVeg    = diet.includes('vegetarian') && !diet.includes('non');
+  const isVegan  = diet.includes('vegan');
+  const isNonVeg = diet.includes('non-veg') || diet.includes('no pref') || diet.includes('egget');
+  const pool = MEAL_DB.filter(m => m.cat === cat);
+  if (isVegan)  return pool.filter(m => m.tags.includes('vegan'));
+  if (isVeg)    return pool.filter(m => m.tags.includes('veg') && !m.tags.includes('non-veg'));
+  return pool; // non-veg or no pref: all options
+}
+
+function buildMeals() {
+  const p = S.profile;
+  const goal = p.goal||''; const cal = p.tdee||2000;
+  const lose = goal.includes('Lose'), muscle = goal.includes('Muscle');
+
+  const pick = (cat) => {
+    const options = getMealsByDiet(cat);
+    if (!options.length) return MEAL_DB.find(m=>m.cat===cat) || { name:'Balanced Meal', kcal:300, protein:15, tags:['veg'], desc:'Varied & nutritious' };
+    // pick best match for goal
+    let sorted = options;
+    if (muscle) sorted = [...options].sort((a,b)=>b.protein-a.protein);
+    else if (lose) sorted = [...options].sort((a,b)=>a.kcal-b.kcal);
+    return sorted[0];
+  };
+
+  const meals = [
+    { icon:'fas fa-sun', lbl:'Breakfast', meal: pick('breakfast'), pct:0.25 },
+    { icon:'fas fa-cloud-sun', lbl:'Lunch', meal: pick('lunch'), pct:0.35 },
+    { icon:'fas fa-cookie-bite', lbl:'Snack', meal: pick('snack'), pct:0.10 },
+    { icon:'fas fa-moon', lbl:'Dinner', meal: pick('dinner'), pct:0.30 }
+  ];
+
+  S.currentMeals = meals.map(m => ({ ...m, meal: {...m.meal} }));
+
+  document.getElementById('mealContent').innerHTML = meals.map((m,i) => `
+    <div class="meal-row" id="mealRow_${i}">
+      <div class="meal-icon"><i class="${m.icon}"></i></div>
+      <div style="flex:1">
+        <div class="meal-name">${m.lbl}</div>
+        <div class="meal-desc" id="mealDesc_${i}">${m.meal.name} — <strong>${Math.round(cal*m.pct)} kcal</strong><br><small>${m.meal.desc}</small></div>
+      </div>
+      <button class="swap-btn" onclick="openSwap(${i},'${m.lbl}')"><i class="fas fa-exchange-alt"></i> Swap</button>
+    </div>`).join('') + `
+    <div style="margin-top:12px;padding:10px 14px;background:var(--bg);border-radius:10px;font-size:12px;color:var(--text-sub);">
+      Total <strong style="color:var(--text)">${cal} kcal</strong> ·
+      Protein ~<strong>${Math.round(p.weight*1.8)}g</strong> ·
+      Carbs ~<strong>${Math.round(cal*0.45/4)}g</strong> ·
+      Fat ~<strong>${Math.round(cal*0.25/9)}g</strong>
+    </div>`;
+}
+
+function buildMealsPreview() {
+  document.getElementById('mealContent').innerHTML = ['Breakfast','Lunch','Dinner'].map((l,i) => `
+    <div class="meal-row" style="opacity:0.45;${i>0?'filter:blur(3px)':''}">
+      <div class="meal-icon"><i class="fas fa-utensils"></i></div>
+      <div><div class="meal-name">${l}</div><div class="meal-desc">Personalised for your goal</div></div>
+    </div>`).join('');
+}
+
+/* ══════════  MEAL SWAP  ══════════ */
+function openSwap(index, label) {
+  S.swapMealIndex = index;
+  S.swapFilter = 'all';
+  document.getElementById('swapMealLabel').textContent = label;
+  document.getElementById('swapSearch').value = '';
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.filter-chip')[0].classList.add('active');
+  renderSwapList();
+  document.getElementById('swapModal').classList.add('open');
+}
+function closeSwap() { document.getElementById('swapModal').classList.remove('open'); }
+
+function setSwapFilter(filter, btn) {
+  S.swapFilter = filter;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderSwapList();
+}
+
+function filterSwap() { renderSwapList(); }
+
+function renderSwapList() {
+  const search = document.getElementById('swapSearch').value.toLowerCase();
+  const cat = S.currentMeals[S.swapMealIndex]?.meal?.cat || 'all';
+  let items = MEAL_DB.filter(m => {
+    const catMatch = cat === 'snack' ? m.cat === 'snack' : (m.cat === cat || cat === 'all');
+    const filterMatch = S.swapFilter === 'all' || m.tags.includes(S.swapFilter);
+    const searchMatch = !search || m.name.toLowerCase().includes(search) || m.desc.toLowerCase().includes(search);
+    return catMatch && filterMatch && searchMatch;
+  });
+
+  // Apply diet preference
+  const diet = (S.profile.diet||'').toLowerCase();
+  if (diet.includes('vegan')) items = items.filter(m => m.tags.includes('vegan'));
+  else if (diet.includes('vegetarian') && !diet.includes('non')) items = items.filter(m => m.tags.includes('veg') && !m.tags.includes('non-veg'));
+
+  const list = document.getElementById('swapList');
+  if (!items.length) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-sub);font-size:13px;">No meals match your filters. Try a different filter!</div>'; return; }
+  list.innerHTML = items.map(m => `
+    <div class="swap-item" onclick="selectSwap(${JSON.stringify(m).replace(/"/g,'&quot;')})">
+      <div class="swap-item-name">${m.name}</div>
+      <div class="swap-item-detail">${m.desc} · <strong>${m.kcal} kcal</strong> · ${m.protein}g protein</div>
+      <div class="swap-item-tags">${m.tags.map(t=>`<span class="tag ${t}">${t}</span>`).join('')}</div>
+    </div>`).join('');
+}
+
+function selectSwap(meal) {
+  const idx = S.swapMealIndex;
+  if (idx < 0 || !S.currentMeals[idx]) return;
+  const cal = S.profile.tdee || 2000;
+  const pct = S.currentMeals[idx].pct;
+  S.currentMeals[idx].meal = meal;
+  const descEl = document.getElementById(`mealDesc_${idx}`);
+  if (descEl) descEl.innerHTML = `${meal.name} — <strong>${Math.round(cal*pct)} kcal</strong><br><small>${meal.desc}</small>`;
+  closeSwap();
+  toast('🔄','Meal Swapped!', `${S.currentMeals[idx].lbl} updated to ${meal.name}`);
+}
+
+/* ══════════  WORKOUT  ══════════ */
+function buildWorkout() {
+  const p = S.profile;
+  const plan = getWorkout(p.workoutType, p.goal);
+  document.getElementById('workoutContent').innerHTML = plan.map((w,i) => `
+    <div class="wk-item">
+      <div class="wk-num">${i+1}</div>
+      <div><div class="wk-name">${w.name}</div><div class="wk-detail">${w.detail}</div></div>
+    </div>`).join('') + `<p style="text-align:center;font-size:12px;color:var(--text-sub);margin-top:6px;">Total session: ~${p.duration} minutes</p>`;
+}
+function buildWorkoutPreview() {
+  document.getElementById('workoutContent').innerHTML = `
+    <div class="wk-item" style="opacity:0.45"><div class="wk-num">1</div><div><div class="wk-name">Warm-Up</div><div class="wk-detail">Personalised for your type</div></div></div>
+    <div class="wk-item" style="opacity:0.45;filter:blur(3px)"><div class="wk-num">2</div><div><div class="wk-name">Main Set</div><div class="wk-detail">AI-generated plan</div></div></div>`;
+}
+function getWorkout(type, goal) {
+  const warm = { name:'Warm-Up', detail:'5 min dynamic stretching & light jog' };
+  const cool = { name:'Cool-Down', detail:'5 min static stretch & deep breathing' };
+  let main = [];
+  if (type?.includes('Yoga')) {
+    main = [{name:'Sun Salutation',detail:'5 rounds'},{name:'Warrior I & II',detail:'3×30 sec each side'},{name:'Plank & Child\'s Pose',detail:'3×30 sec hold'}];
+  } else if (type?.includes('Cardio')) {
+    main = [{name:'Brisk Walk/Jog',detail:'10 min at 60% max HR'},{name:'HIIT Intervals',detail:'8×30 sec sprint + 30 sec rest'},{name:'Jump Rope',detail:'5 min continuous'}];
+  } else if (type?.includes('Gym')||type?.includes('Strength')) {
+    main = goal?.includes('Muscle') ? [
+      {name:'Barbell Bench Press',detail:'4×8–10 reps'},{name:'Deadlift',detail:'3×6–8 reps'},{name:'Pull-Ups',detail:'3×max reps'},{name:'Dumbbell Bicep Curls',detail:'3×12 reps'}
+    ] : [{name:'Treadmill',detail:'10 min moderate pace'},{name:'Leg Press',detail:'3×15 reps'},{name:'Cable Rows',detail:'3×12 reps'}];
+  } else {
+    main = [{name:'Bodyweight Squats',detail:'3×15 reps'},{name:'Push-Ups',detail:'3×12 reps'},{name:'Mountain Climbers',detail:'3×30 sec'},{name:'Plank Hold',detail:'3×45 sec'}];
+  }
+  return [warm, ...main, cool];
+}
+
+/* ══════════  SPOTIFY PLAYLISTS  ══════════ */
+function buildSpotify() {
+  const wt = (S.profile.workoutType||'').toLowerCase();
+  let lists = [...SPOTIFY_PLAYLISTS.all];
+  if (wt.includes('yoga'))     lists = [...SPOTIFY_PLAYLISTS.yoga,  ...lists];
+  if (wt.includes('cardio'))   lists = [...SPOTIFY_PLAYLISTS.cardio,...lists];
+  if (wt.includes('gym')||wt.includes('strength')) lists = [...SPOTIFY_PLAYLISTS.gym,...lists];
+  // dedupe
+  const seen = new Set(); lists = lists.filter(l => { if(seen.has(l.name)) return false; seen.add(l.name); return true; });
+
+  document.getElementById('spotifyContent').innerHTML = `<div class="media-grid">` +
+    lists.map(pl => `
+      <div class="media-card" onclick="window.open('${pl.url}','_blank')">
+        <div class="media-thumb media-thumb-spotify">${pl.emoji}<div class="play-overlay"><i class="fas fa-play" style="color:white;font-size:20px"></i></div></div>
+        <div class="media-info">
+          <span class="media-badge spotify"><i class="fab fa-spotify"></i> Spotify</span>
+          <div class="media-title">${pl.name}</div>
+          <div class="media-sub">${pl.desc}</div>
+        </div>
+      </div>`).join('') + `</div>`;
+}
+function buildSpotifyPreview() {
+  document.getElementById('spotifyContent').innerHTML = `<div style="text-align:center;padding:30px 0;color:var(--text-sub)"><i class="fab fa-spotify" style="font-size:34px;opacity:0.25"></i><p style="margin-top:10px;font-size:13px">100+ playlists unlocked with Basic plan</p></div>`;
+}
+
+/* ══════════  YOUTUBE VIDEOS  ══════════ */
+function buildYoutube() {
+  const wt = (S.profile.workoutType||'').toLowerCase();
+  let vids = [...YOUTUBE_VIDEOS.all];
+  if (wt.includes('yoga'))     vids = [...YOUTUBE_VIDEOS.yoga,     ...vids];
+  if (wt.includes('cardio'))   vids = [...YOUTUBE_VIDEOS.cardio,   ...vids];
+  if (wt.includes('strength')) vids = [...YOUTUBE_VIDEOS.strength, ...vids];
+  if (wt.includes('home'))     vids = [...YOUTUBE_VIDEOS.home,     ...vids];
+  const seen = new Set(); vids = vids.filter(v => { if(seen.has(v.name)) return false; seen.add(v.name); return true; });
+
+  document.getElementById('youtubeContent').innerHTML = `<div class="media-grid">` +
+    vids.map(v => `
+      <div class="media-card" onclick="window.open('${v.url}','_blank')">
+        <div class="media-thumb media-thumb-youtube">${v.emoji}<div class="play-overlay"><i class="fas fa-play" style="color:white;font-size:20px"></i></div></div>
+        <div class="media-info">
+          <span class="media-badge youtube"><i class="fab fa-youtube"></i> YouTube</span>
+          <div class="media-title">${v.name}</div>
+          <div class="media-sub">${v.channel}</div>
+        </div>
+      </div>`).join('') + `</div>`;
+}
+function buildYoutubePreview() {
+  document.getElementById('youtubeContent').innerHTML = `<div style="text-align:center;padding:30px 0;color:var(--text-sub)"><i class="fab fa-youtube" style="font-size:34px;opacity:0.25"></i><p style="margin-top:10px;font-size:13px">100+ workout videos unlocked with Pro plan</p></div>`;
+}
+
+/* ══════════  ANALYTICS (Elite)  ══════════ */
+function buildAnalytics() {
+  const p = S.profile; const bmi = p.bmi||22;
+  const bodyFat = p.gender==='Female' ? Math.round(bmi*1.2+0.23*p.age-10.8*0+5.4) : Math.round(bmi*1.2+0.23*(p.age||25)-10.8*1-5.4);
+  const leanMass = Math.round(p.weight*(1-bodyFat/100));
+  document.getElementById('analyticsContent').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      <div style="background:var(--bg);border-radius:12px;padding:14px;text-align:center"><div style="font-size:22px;font-weight:700;color:var(--brand)">${bodyFat}%</div><div style="font-size:12px;color:var(--text-sub)">Estimated Body Fat</div></div>
+      <div style="background:var(--bg);border-radius:12px;padding:14px;text-align:center"><div style="font-size:22px;font-weight:700;color:var(--success)">${leanMass}kg</div><div style="font-size:12px;color:var(--text-sub)">Lean Muscle Mass</div></div>
+      <div style="background:var(--bg);border-radius:12px;padding:14px;text-align:center"><div style="font-size:22px;font-weight:700;color:var(--accent)">${Math.round(p.weight*1.8)}g</div><div style="font-size:12px;color:var(--text-sub)">Daily Protein Target</div></div>
+      <div style="background:var(--bg);border-radius:12px;padding:14px;text-align:center"><div style="font-size:22px;font-weight:700;color:var(--warning)">${Math.round((p.weight||70)*0.033*1000)}ml</div><div style="font-size:12px;color:var(--text-sub)">Daily Water Target</div></div>
+    </div>
+    <div style="padding:10px 14px;background:linear-gradient(135deg,#7C3AED15,#4C1D9515);border-radius:12px;font-size:12px;color:var(--text-sub);border-left:3px solid #7C3AED">
+      <strong>🏆 Elite Analysis:</strong> Based on your profile, your optimal macro split is <strong>${Math.round(p.tdee*0.35/4)}g carbs</strong>, <strong>${Math.round(p.weight*1.8)}g protein</strong>, <strong>${Math.round(p.tdee*0.25/9)}g fat</strong> per day.
+    </div>`;
+}
+function buildAnalyticsPreview() {
+  document.getElementById('analyticsContent').innerHTML = `<div style="text-align:center;padding:30px 0;color:var(--text-sub)"><i class="fas fa-brain" style="font-size:34px;opacity:0.25"></i><p style="margin-top:10px;font-size:13px">AI Body Analysis unlocked with Elite plan</p></div>`;
+}
+
+/* ══════════  TRAINERS DATABASE  ══════════ */
+const TRAINERS = {
+  'Home Workout 🏠': {
+    id:'priya', name:'Priya Sharma', emoji:'🧘‍♀️', bg:'linear-gradient(135deg,#ec4899,#be185d)',
+    spec:'Home Fitness & Bodyweight Expert', exp:'6 yrs', rating:4.9, reviewCount:312,
+    status:'online', statusLabel:'Available Now',
+    tags:['Home Workouts','HIIT','Core','Flexibility','No Equipment'],
+    bio:'Priya is a certified home fitness coach who believes great results don\'t require a gym. She specialises in bodyweight training, HIIT circuits, and creating sustainable at-home workout habits for all fitness levels.',
+    certs:['ACE Certified CPT','NASM Nutrition Coach','Yoga Alliance RYT-200','HIIT Specialist'],
+    clients:280, sessions:1840, achievement:'98% client retention',
+    reviewsList:[
+      { name:'Anjali R.', stars:'⭐⭐⭐⭐⭐', text:'Priya helped me lose 12kg entirely from home. Her sessions are fun and incredibly effective!' },
+      { name:'Meera T.', stars:'⭐⭐⭐⭐⭐', text:'Best home workout trainer I\'ve ever had. No excuses anymore!' }
+    ]
+  },
+  'Gym 🏋️': {
+    id:'vikram', name:'Vikram Malhotra', emoji:'🏋️‍♂️', bg:'linear-gradient(135deg,#2563EB,#1e40af)',
+    spec:'Strength & Conditioning Coach', exp:'10 yrs', rating:4.8, reviewCount:487,
+    status:'online', statusLabel:'Available Now',
+    tags:['Powerlifting','Bodybuilding','Hypertrophy','Conditioning','Gym'],
+    bio:'Vikram is a former national-level powerlifter with a decade of coaching elite athletes and gym beginners alike. His approach combines scientific programming with practical, no-nonsense training methodologies.',
+    certs:['CSCS (NSCA)','IPF Certified Coach','Sports Nutrition Specialist','Strength & Conditioning L3'],
+    clients:420, sessions:3100, achievement:'15+ national champions trained',
+    reviewsList:[
+      { name:'Rohan K.', stars:'⭐⭐⭐⭐⭐', text:'Went from 60kg to 85kg lean in 8 months. Vikram\'s programming is elite level.' },
+      { name:'Siddharth M.', stars:'⭐⭐⭐⭐⭐', text:'My bench went from 60 to 120kg. The man is a wizard!' }
+    ]
+  },
+  'Cardio 🏃‍♂️': {
+    id:'maya', name:'Maya Patel', emoji:'🏃‍♀️', bg:'linear-gradient(135deg,#f97316,#c2410c)',
+    spec:'Cardio & Endurance Coach', exp:'7 yrs', rating:4.9, reviewCount:263,
+    status:'busy', statusLabel:'In Session · Next: 2:00 PM',
+    tags:['Running','HIIT','Cycling','Swimming','Fat Loss','Endurance'],
+    bio:'Maya is a certified endurance coach and marathon runner who has helped hundreds of people transform through cardiovascular training. She specialises in run coaching, interval training, and aerobic conditioning.',
+    certs:['USA Track & Field Coach','RRCA Running Coach L2','ACE Fitness Nutrition','HIIT & Conditioning Cert'],
+    clients:215, sessions:1620, achievement:'42 marathon finishers coached',
+    reviewsList:[
+      { name:'Pooja S.', stars:'⭐⭐⭐⭐⭐', text:'Maya took me from barely running 1km to finishing my first half-marathon in 4 months!' },
+      { name:'Kiran L.', stars:'⭐⭐⭐⭐⭐', text:'Lost 18kg with her cardio programs. She makes every session feel achievable.' }
+    ]
+  },
+  'Strength Training 💪': {
+    id:'rahul', name:'Rahul Singh', emoji:'💪', bg:'linear-gradient(135deg,#7c3aed,#4c1d95)',
+    spec:'Powerlifting & Hypertrophy Expert', exp:'9 yrs', rating:4.8, reviewCount:391,
+    status:'online', statusLabel:'Available Now',
+    tags:['Powerlifting','Deadlift','Progressive Overload','Muscle Building','Strength'],
+    bio:'Rahul is a competitive powerlifter and strength coach who blends science-backed programming with real-world application. He has a gift for breaking down complex lifts and building strength systematically.',
+    certs:['IPF Technical Official','NSCA-CSCS','Precision Nutrition L1','Movement & Mobility Specialist'],
+    clients:340, sessions:2780, achievement:'State powerlifting champion 2021',
+    reviewsList:[
+      { name:'Arjun V.', stars:'⭐⭐⭐⭐⭐', text:'Rahul fixed my deadlift form in the first session. My numbers have been climbing ever since.' },
+      { name:'Dev P.', stars:'⭐⭐⭐⭐', text:'Best strength coach in the game. Scientific, patient, and results-driven.' }
+    ]
+  },
+  'Yoga 🧘': {
+    id:'ananya', name:'Ananya Krishnan', emoji:'🌸', bg:'linear-gradient(135deg,#059669,#065f46)',
+    spec:'Yoga & Mindfulness Coach', exp:'8 yrs', rating:5.0, reviewCount:198,
+    status:'online', statusLabel:'Available Now',
+    tags:['Vinyasa','Hatha','Yin Yoga','Meditation','Pranayama','Flexibility'],
+    bio:'Ananya is a 500-hour RYT certified yoga teacher trained in Mysore, India. She weaves ancient yoga wisdom with modern anatomy to create transformative sessions that heal both body and mind.',
+    certs:['Yoga Alliance RYT-500','Mindfulness-Based Stress Reduction','Yin Yoga Teacher Cert','Pranayama & Meditation L2'],
+    clients:175, sessions:2100, achievement:'100% 5-star rated for 3 years',
+    reviewsList:[
+      { name:'Shreya N.', stars:'⭐⭐⭐⭐⭐', text:'Ananya\'s yoga sessions have completely transformed my stress levels and flexibility. Pure magic.' },
+      { name:'Priyanka M.', stars:'⭐⭐⭐⭐⭐', text:'She is the most mindful and attentive teacher I\'ve ever had.' }
+    ]
+  },
+  'Mixed 🔀': {
+    id:'alex', name:'Alex D\'Souza', emoji:'🏅', bg:'linear-gradient(135deg,#dc2626,#991b1b)',
+    spec:'All-Round Fitness Coach', exp:'12 yrs', rating:4.9, reviewCount:554,
+    status:'online', statusLabel:'Available Now',
+    tags:['CrossFit','Functional Fitness','Mobility','Nutrition','Weight Loss','Muscle'],
+    bio:'Alex is FitX\'s most versatile coach with 12 years of experience across multiple disciplines. Whether your goal is weight loss, muscle gain, mobility, or general health — Alex builds a custom program that works.',
+    certs:['CrossFit L3 Trainer','NASM-CPT','Precision Nutrition L2','USA Weightlifting L1','FMS Specialist'],
+    clients:510, sessions:4200, achievement:'FitX Coach of the Year 2023',
+    reviewsList:[
+      { name:'Kabir A.', stars:'⭐⭐⭐⭐⭐', text:'Alex designs the most well-rounded programs. I\'ve never felt fitter in my life.' },
+      { name:'Nisha C.', stars:'⭐⭐⭐⭐⭐', text:'He adapts every session to exactly what my body needs. Truly world-class.' }
+    ]
+  }
+};
+
+let S_booking = { selectedDate: null, selectedTime: null, selectedSession: 'Video Call', selectedSessionDur: 30 };
+let S_vcTimer = null;
+let S_currentTrainer = null;
+
+/* ══════════  TRAINER SECTION  ══════════ */
+function buildTrainer() {
+  const wt = S.profile.workoutType || 'Mixed 🔀';
+  // The primary trainer matches workout preference, rest are "also available"
+  const primaryKey = Object.keys(TRAINERS).find(k => k === wt) || 'Mixed 🔀';
+
+  const content = document.getElementById('trainerContent');
+  content.innerHTML = `
+    <p style="font-size:12px;color:var(--text-sub);margin-bottom:14px;"><i class="fas fa-star" style="color:#f59e0b"></i> Trainers matched to your <strong>${wt}</strong> preference are highlighted</p>
+    <div class="trainers-grid">
+      ${Object.entries(TRAINERS).map(([key, t]) => {
+        const isPrimary = key === primaryKey;
+        return `
+        <div class="trainer-card ${isPrimary?'recommended':''}">
+          ${isPrimary ? '<div class="rec-badge">⭐ Recommended</div>' : ''}
+          <div class="trainer-avatar" style="background:${t.bg};color:white;">${t.emoji}</div>
+          <div class="trainer-name">${t.name}</div>
+          <div class="trainer-spec">${t.spec}</div>
+          <div class="trainer-exp">${t.exp} experience · ${t.clients} clients</div>
+          <div class="trainer-rating">
+            <span class="stars">⭐⭐⭐⭐⭐</span>
+            <span style="font-weight:700;font-size:12px;color:var(--text)">${t.rating}</span>
+            <span class="rv">(${t.reviewCount} reviews)</span>
+          </div>
+          <div class="trainer-status ${t.status}">
+            <span class="dot"></span>
+            <span>${t.statusLabel}</span>
+          </div>
+          <div class="trainer-actions">
+            <button class="trainer-action-btn primary" onclick="openVideoCall('${key}')"><i class="fas fa-video"></i> Video Call</button>
+            <button class="trainer-action-btn success" onclick="openTrainerChat('${key}')"><i class="fas fa-comment"></i> Chat</button>
+            <button class="trainer-action-btn accent" onclick="openBooking('${key}')"><i class="fas fa-calendar"></i> Book</button>
+            <button class="trainer-action-btn secondary" onclick="openTrainerProfile('${key}')"><i class="fas fa-info-circle"></i> Profile</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+
+}
+function buildTrainerPreview() {
+  document.getElementById('trainerContent').innerHTML = `<div style="text-align:center;padding:30px 0;color:var(--text-sub)"><i class="fas fa-user-tie" style="font-size:34px;opacity:0.25"></i><p style="margin-top:10px;font-size:13px">Personal Trainer 24×7 unlocked with Elite plan</p></div>`;
+}
+
+/* ══════ VIDEO CALL  ══════ */
+let _vcInterval = null;
+function openVideoCall(trainerKey) {
+  S_currentTrainer = TRAINERS[trainerKey];
+  const t = S_currentTrainer;
+  document.getElementById('vcAvatarEl').textContent = t.emoji;
+  document.getElementById('vcAvatarEl').style.background = t.bg;
+  document.getElementById('vcNameEl').textContent = t.name;
+  document.getElementById('vcStatusEl').textContent = 'Connecting...';
+  document.getElementById('vcBigAvatar').style.background = t.bg;
+  document.getElementById('vcBigAvatar').innerHTML = `<span style="font-size:38px;">${t.emoji}</span>`;
+  document.getElementById('vcCallingText').textContent = '📞 Ringing...';
+  document.getElementById('vcTimer').textContent = '00:00';
+  document.getElementById('videoCallModal').classList.add('open');
+
+  setTimeout(() => {
+    document.getElementById('vcStatusEl').textContent = '🟢 Connected';
+    document.getElementById('vcCallingText').textContent = `${t.name} is live!`;
+    let sec = 0;
+    clearInterval(_vcInterval);
+    _vcInterval = setInterval(() => {
+      sec++;
+      const m = String(Math.floor(sec/60)).padStart(2,'0');
+      const s = String(sec%60).padStart(2,'0');
+      document.getElementById('vcTimer').textContent = `${m}:${s}`;
+    }, 1000);
+  }, 2200);
+}
+function closeVideoCall() {
+  clearInterval(_vcInterval);
+  document.getElementById('videoCallModal').classList.remove('open');
+}
+function toggleMic(btn) { btn.classList.toggle('active'); btn.innerHTML = btn.classList.contains('active') ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>'; }
+function toggleCam(btn) { btn.classList.toggle('active'); btn.innerHTML = btn.classList.contains('active') ? '<i class="fas fa-video-slash"></i>' : '<i class="fas fa-video"></i>'; }
+
+/* ══════ TRAINER CHAT  ══════ */
+const TRAINER_REPLIES = [
+  "Great question! Let's work on that in our next session.",
+  "I'd recommend focusing on progressive overload this week 💪",
+  "Make sure you're hitting your protein targets — that's key for recovery!",
+  "You're making excellent progress! Keep it consistent.",
+  "Try adding 5kg more on your working sets this week.",
+  "Rest and recovery are just as important as training. How's your sleep?",
+  "Let's schedule a form check session — I want to review your technique.",
+  "Your meal plan looks solid! Keep those macros in check 🥗"
+];
+function openTrainerChat(trainerKey) {
+  S_currentTrainer = TRAINERS[trainerKey];
+  const t = S_currentTrainer;
+  document.getElementById('tcAvatarEl').textContent = t.emoji;
+  document.getElementById('tcAvatarEl').style.background = t.bg;
+  document.getElementById('tcNameEl').textContent = t.name;
+  const msgs = document.getElementById('trainerChatMsgs');
+  msgs.innerHTML = `
+    <div class="tchat-msg from-trainer">
+      <div class="tm-av" style="background:${t.bg};">${t.emoji}</div>
+      <div class="tm-bubble">Hey ${S.profile.name||'there'}! 👋 I'm ${t.name}. Ready to help you crush your goals. What's on your mind?</div>
+    </div>`;
+  document.getElementById('trainerChatModal').classList.add('open');
+  document.getElementById('trainerChatInput').focus();
+}
+function closeTrainerChat() { document.getElementById('trainerChatModal').classList.remove('open'); }
+function sendTrainerMsg() {
+  const inp = document.getElementById('trainerChatInput');
+  const val = inp.value.trim(); if (!val) return;
+  inp.value = '';
+  const t = S_currentTrainer;
+  const msgs = document.getElementById('trainerChatMsgs');
+  msgs.innerHTML += `<div class="tchat-msg from-me"><div class="tm-bubble">${val}</div><div class="tm-av" style="background:linear-gradient(135deg,var(--accent),var(--accent-2))"><i class="fas fa-user"></i></div></div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+  setTimeout(() => {
+    const reply = TRAINER_REPLIES[Math.floor(Math.random()*TRAINER_REPLIES.length)];
+    msgs.innerHTML += `<div class="tchat-msg from-trainer"><div class="tm-av" style="background:${t.bg};">${t.emoji}</div><div class="tm-bubble">${reply}</div></div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 900 + Math.random()*600);
+}
+
+/* ══════ SESSION BOOKING  ══════ */
+function openBooking(trainerKey) {
+  S_currentTrainer = TRAINERS[trainerKey];
+  const t = S_currentTrainer;
+  document.getElementById('bookTrainerInfo').innerHTML = `
+    <div style="width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;background:${t.bg};">${t.emoji}</div>
+    <div><div style="font-weight:700;font-size:15px;">${t.name}</div><div style="font-size:12px;color:var(--brand);font-weight:600;">${t.spec}</div><div style="font-size:11px;color:var(--text-sub);">${t.exp} · ⭐ ${t.rating} (${t.reviewCount} reviews)</div></div>`;
+  buildCalendar();
+  document.getElementById('sessionBookModal').classList.add('open');
+}
+function buildCalendar() {
+  const now = new Date();
+  const month = now.getMonth(); const year = now.getFullYear();
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('calMonthLabel').textContent = `— ${monthNames[month]} ${year}`;
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const today = now.getDate();
+  const dayHeaders = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  let html = dayHeaders.map(d=>`<div class="cal-day-hdr">${d}</div>`).join('');
+  for(let i=0;i<firstDay;i++) html += '<div class="cal-day empty"></div>';
+  for(let d=1;d<=daysInMonth;d++) {
+    if(d<today) html += `<div class="cal-day past">${d}</div>`;
+    else html += `<div class="cal-day available" onclick="selectCalDay(this,${d})">${d}</div>`;
+  }
+  document.getElementById('bookingCalendar').innerHTML = html;
+}
+function selectCalDay(el, day) {
+  document.querySelectorAll('.cal-day.selected').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  S_booking.selectedDate = day;
+}
+function selectSlot(el) {
+  if(el.classList.contains('taken')) return;
+  document.querySelectorAll('.time-slot.selected').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  S_booking.selectedTime = el.textContent;
+}
+function selectSessionType(el, type, dur) {
+  document.querySelectorAll('.session-type.selected').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  S_booking.selectedSession = type; S_booking.selectedSessionDur = dur;
+}
+function confirmBooking() {
+  if (!S_booking.selectedDate || !S_booking.selectedTime) {
+    toast('⚠️','Select Date & Time','Please pick a date and time slot before confirming!'); return;
+  }
+  const t = S_currentTrainer;
+  document.getElementById('sessionBookModal').classList.remove('open');
+  const now = new Date();
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  toast('📅','Session Booked!',`${S_booking.selectedSession} with ${t.name} on ${monthNames[now.getMonth()]} ${S_booking.selectedDate} at ${S_booking.selectedTime}`);
+  addBot(`📅 <strong>Session Booked!</strong><br>Your <strong>${S_booking.selectedSession}</strong> session with <strong>${t.name}</strong> is confirmed for <strong>${monthNames[now.getMonth()]} ${S_booking.selectedDate} at ${S_booking.selectedTime}</strong>.<br>You'll receive a reminder 30 minutes before. 🎉`);
+  S_booking = { selectedDate:null, selectedTime:null, selectedSession:'Video Call', selectedSessionDur:30 };
+}
+
+/* ══════ TRAINER PROFILE  ══════ */
+function openTrainerProfile(trainerKey) {
+  const t = TRAINERS[trainerKey];
+  document.getElementById('trainerProfileContent').innerHTML = `
+    <div class="trainer-profile-header">
+      <div class="tp-avatar-lg" style="background:${t.bg};color:white;">${t.emoji}</div>
+      <div>
+        <div class="tp-name">${t.name}</div>
+        <div class="tp-spec">${t.spec}</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:12px;color:var(--text-sub);">
+          ⭐ <strong style="color:var(--text)">${t.rating}</strong> · ${t.reviewCount} reviews · ${t.exp} experience
+        </div>
+        <div class="tp-tags">${t.tags.map(tag=>`<span class="tp-tag">${tag}</span>`).join('')}</div>
+      </div>
+    </div>
+    <div class="tp-stats">
+      <div class="tp-stat"><div class="tp-stat-val">${t.clients}+</div><div class="tp-stat-lbl">Clients Coached</div></div>
+      <div class="tp-stat"><div class="tp-stat-val">${t.sessions}+</div><div class="tp-stat-lbl">Sessions Done</div></div>
+      <div class="tp-stat"><div class="tp-stat-val">${t.rating}</div><div class="tp-stat-lbl">Avg Rating</div></div>
+    </div>
+    <div class="tp-section">
+      <h4><i class="fas fa-user"></i> About ${t.name.split(' ')[0]}</h4>
+      <p>${t.bio}</p>
+    </div>
+    <div class="tp-section">
+      <h4><i class="fas fa-certificate"></i> Certifications & Credentials</h4>
+      <div class="tp-certs">${t.certs.map(c=>`<span class="tp-cert"><i class="fas fa-check-circle"></i> ${c}</span>`).join('')}</div>
+    </div>
+    <div class="tp-section">
+      <h4><i class="fas fa-trophy"></i> Achievement</h4>
+      <p style="background:linear-gradient(135deg,#fffbeb,#fef3c7);padding:10px 14px;border-radius:12px;border-left:3px solid #f59e0b;">🏆 ${t.achievement}</p>
+    </div>
+    <div class="tp-section">
+      <h4><i class="fas fa-star"></i> Client Reviews</h4>
+      <div class="tp-reviews">${(t.reviewsList||[]).map(r=>`<div class="tp-review"><div class="rev-head"><span class="rev-name">${r.name}</span><span class="rev-stars">${r.stars}</span></div><p>${r.text}</p></div>`).join('')}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;">
+      <button class="book-confirm-btn" style="grid-column:span 2" onclick="document.getElementById('trainerProfileModal').classList.remove('open');setTimeout(()=>openBooking('${trainerKey}'),200);"><i class="fas fa-calendar-check"></i> Book a Session with ${t.name.split(' ')[0]}</button>
+    </div>`;
+  document.getElementById('trainerProfileModal').classList.add('open');
+}
+
+
+/* ══════════  DEALS  ══════════ */
+function buildDeals(plan) {
+  const basicDeals = [
+    { code:'FITX50', title:'50% OFF — Cult.fit', desc:'Use at checkout on the app' },
+    { code:'GYM30', title:'30% OFF — Gold\'s Gym', desc:'Valid till month end' },
+    { code:'MB20', title:'20% OFF — MuscleBlaze', desc:'On all whey proteins' },
+  ];
+  const proDeals = [
+    ...basicDeals,
+    { code:'PUMA25', title:'25% OFF — Puma Sports', desc:'Gym wear & shoes' },
+    { code:'NB15', title:'15% OFF — Nike Running', desc:'All running shoes' },
+    { code:'SUPP30', title:'30% OFF — GNC India', desc:'Supplements & vitamins' },
+  ];
+  const eliteDeals = [
+    ...proDeals,
+    { code:'ELITE50', title:'50% OFF — Anytime Fitness', desc:'Elite member exclusive' },
+    { code:'WHEY40', title:'40% OFF — Optimum Nutrition', desc:'Gold Standard Whey' },
+    { code:'FITBIT30', title:'30% OFF — Fitbit/Garmin', desc:'Fitness trackers' },
+    { code:'MEAL25', title:'25% OFF — Eat.fit Meals', desc:'Healthy meal delivery' },
+  ];
+  const deals = plan==='Elite' ? eliteDeals : plan==='Pro' ? proDeals : basicDeals;
+  document.getElementById('dealsContent').innerHTML = deals.map(d => `
+    <div class="deal-row">
+      <div class="deal-code">${d.code}</div>
+      <div class="deal-info"><h5>${d.title}</h5><p>${d.desc}</p></div>
+      <button class="deal-btn" onclick="copyCode('${d.code}')">Copy</button>
+    </div>`).join('');
+}
+
+/* ══════════  PREMIUM & PAYMENT  ══════════ */
+function choosePlan(name, price, amount) {
+  S.pendingPlan = { name, price, amount };
+  document.getElementById('planLabel').textContent = name + ' Plan';
+  document.getElementById('planPrice').textContent = price + '/month';
+  closePremium();
+  // Reset payment tabs
+  document.querySelectorAll('.pay-method-tab').forEach(t=>t.classList.remove('selected'));
+  document.querySelectorAll('.pay-method-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('paymentModal').classList.add('open');
+}
+
+function selectPayTab(method) {
+  document.querySelectorAll('.pay-method-tab').forEach(t=>t.classList.remove('selected'));
+  document.querySelectorAll('.pay-method-content').forEach(c=>c.classList.remove('active'));
+  const tabMap = { UPI:'tabUPI', Card:'tabCard', NetBanking:'tabNB' };
+  const contentMap = { UPI:'payUPI', Card:'payCard', NetBanking:'payNB' };
+  document.getElementById(tabMap[method]).classList.add('selected');
+  document.getElementById(contentMap[method]).classList.add('active');
+}
+
+function copyUPI() {
+  navigator.clipboard.writeText('fitxcoach@axisbank')
+    .then(()=>toast('📋','UPI ID Copied!','fitxcoach@axisbank copied to clipboard.'))
+    .catch(()=>toast('📋','UPI ID','fitxcoach@axisbank'));
+}
+
+function submitUPIPayment() {
+  const upiId = document.getElementById('upiIdInput').value.trim();
+  const pin = document.getElementById('upiPinInput').value.trim();
+  if (!upiId.includes('@')) { toast('⚠️','Invalid UPI ID','Please enter a valid UPI ID (e.g. name@upi)'); return; }
+  if (pin.length < 4) { toast('⚠️','Invalid PIN','Please enter your 4 or 6 digit UPI PIN'); return; }
+  closePayment();
+  processPayment('UPI');
+}
+
+function formatCard(el) {
+  let v = el.value.replace(/\D/g,'').substring(0,16);
+  el.value = v.replace(/(.{4})/g,'$1 ').trim();
+  const disp = v.padEnd(16,'•');
+  document.getElementById('cardNumDisplay').textContent = disp.replace(/(.{4})/g,'$1 ').trim();
+}
+function formatExpiry(el) {
+  let v = el.value.replace(/\D/g,'');
+  if(v.length>=2) v = v.substring(0,2)+' / '+v.substring(2,4);
+  el.value = v;
+  document.getElementById('cardExpDisplay').textContent = el.value||'MM/YY';
+}
+
+function submitCardPayment() {
+  const num = document.getElementById('cardNumInput').value.replace(/\s/g,'');
+  const name = document.getElementById('cardNameInput').value.trim();
+  const exp = document.getElementById('cardExpInput').value.trim();
+  const cvv = document.getElementById('cardCVVInput').value.trim();
+  if(num.length<16){ toast('⚠️','Invalid Card','Please enter a valid 16-digit card number'); return; }
+  if(!name){ toast('⚠️','Missing Name','Please enter the name on your card'); return; }
+  if(exp.length<7){ toast('⚠️','Invalid Expiry','Please enter a valid expiry date (MM / YY)'); return; }
+  if(cvv.length<3){ toast('⚠️','Invalid CVV','Please enter a valid CVV'); return; }
+  closePayment();
+  processPayment('Card');
+}
+
+function selectBank(bankName, icon) {
+  document.getElementById('selectedBankName').textContent = bankName + ' Net Banking';
+  document.getElementById('selectedBankIcon').textContent = icon;
+  document.getElementById('bankSelectView').style.display = 'none';
+  document.getElementById('bankCredsView').style.display = 'block';
+  document.querySelectorAll('.bank-card').forEach(c=>c.classList.remove('selected'));
+}
+
+let _otpSent = false;
+function sendOTP() {
+  _otpSent = true;
+  toast('📱','OTP Sent!','A 6-digit OTP has been sent to your registered mobile number.');
+}
+
+function submitNBPayment() {
+  const user = document.getElementById('nbUserInput').value.trim();
+  const pass = document.getElementById('nbPassInput').value.trim();
+  const otp = document.getElementById('nbOTPInput').value.trim();
+  if(!user){ toast('⚠️','Missing ID','Please enter your Customer ID'); return; }
+  if(!pass){ toast('⚠️','Missing Password','Please enter your net banking password'); return; }
+  if(otp.length<6){ toast('⚠️','Missing OTP','Please enter the 6-digit OTP sent to your mobile'); return; }
+  closePayment();
+  processPayment('Net Banking');
+}
+
+function processPayment(method) {
+  closePayment();
+  switchTab('chat');
+  showTyping();
+  setTimeout(() => {
+    S.premium = true;
+    S.plan = S.pendingPlan.name;
+    hideTyping();
+
+    const planFeatures = {
+      Basic: `• 🍱 Personalised Meal Plans + Meal Swap (50+ options)\n• 💪 Custom Workout Plans\n• 🎵 100+ Spotify Playlists\n• 📊 Weekly Progress Reports`,
+      Pro:   `• All Basic features\n• 🎬 100+ YouTube Workout Videos\n• 🏷️ Gym & Gear Discounts\n• 🤖 AI Workout Schedules\n• 📈 Advanced Progress Tracking`,
+      Elite: `• All Pro features\n• 🏆 Personal Trainer 24×7\n• 🧠 AI Body Analysis & Macros\n• 🎁 Premium Supplement Deals\n• 🏅 Challenges & Badges\n• ⚡ Priority Support`
+    };
+
+    addBot(`✅ <strong>Payment via ${method} confirmed!</strong> 🎉<br><br>
+Welcome to <strong>${S.plan} Plan</strong>, ${S.profile.name||'Champion'}!<br><br>
+Your unlocked features:<br>
+${(planFeatures[S.plan]||'').replace(/\n/g,'<br>')}<br><br>
+Switch to your <strong>Dashboard</strong> to see everything! 💎`);
+
+    const badge = document.getElementById('planBadgeHeader');
+    badge.textContent = S.plan.toUpperCase();
+    badge.style.display = 'inline-block';
+
+    buildDeals(S.plan);
+    refreshDash();
+    toast('🎉','Welcome to '+S.plan+'!', `Your ${S.plan} features are now active!`);
+  }, 2000);
+}
+
+/* ══════════  SETTINGS  ══════════ */
+function saveSettings() {
+  const brand = document.getElementById('brandEl').value.trim() || 'FitX Coach';
+  const color = document.getElementById('colorEl').value;
+  document.getElementById('logoEl').innerHTML = `<i class="fas fa-dumbbell" style="color:var(--accent)"></i> <span>${brand.replace(/\s+(\S)/g,(m,c)=>' <em>'+c+'</em>')}</span>`;
+  document.title = brand+' — AI Fitness Trainer';
+  document.documentElement.style.setProperty('--brand', color);
+  document.documentElement.style.setProperty('--brand-dark', shade(color,-25));
+  closeSettings();
+  toast('✅','Settings Saved','Your changes have been applied.');
+}
+function shade(hex, pct) {
+  const n=parseInt(hex.slice(1),16);
+  const r=Math.max(0,Math.min(255,(n>>16)+pct));
+  const g=Math.max(0,Math.min(255,((n>>8)&0xff)+pct));
+  const b=Math.max(0,Math.min(255,(n&0xff)+pct));
+  return '#'+(r<<16|g<<8|b).toString(16).padStart(6,'0');
+}
+function resetAll() {
+  if (!confirm('This will clear your profile, chat history and session. Continue?')) return;
+  S = { step:'greeting', profile:{}, premium:false, plan:'', history:[], locked:false, chart:null, pendingPlan:{}, swapMealIndex:-1, swapFilter:'all', currentMeals:[] };
+  document.getElementById('chatMessages').innerHTML = '';
+  document.getElementById('planBadgeHeader').style.display = 'none';
+  closeSettings(); showStep('greeting');
+  toast('🔄','Reset Complete','Chat and profile cleared.');
+}
+
+/* ══════════  MODALS  ══════════ */
+const openPremium  = () => document.getElementById('premiumModal').classList.add('open');
+const closePremium = () => document.getElementById('premiumModal').classList.remove('open');
+const closePayment = () => document.getElementById('paymentModal').classList.remove('open');
+const openSettings = () => document.getElementById('settingsModal').classList.add('open');
+const closeSettings= () => document.getElementById('settingsModal').classList.remove('open');
+function backdropClose(e, id) { if (e.target.id === id) document.getElementById(id).classList.remove('open'); }
+function copyCode(code) {
+  navigator.clipboard.writeText(code)
+    .then(() => toast('📋','Code Copied!', `"${code}" copied to clipboard.`))
+    .catch(() => toast('📋','Your Code', `Use code: ${code}`));
+}
+
+/* ══════════  TOAST  ══════════ */
+function toast(icon, title, msg, dur=3800) {
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span class="toast-ico">${icon}</span><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><span class="toast-x" onclick="this.parentElement.remove()">✕</span>`;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), dur);
+}
+
+/* ══════════  UTILS  ══════════ */
+function scroll() { requestAnimationFrame(() => { const c=document.getElementById('chatMessages'); c.scrollTop=c.scrollHeight; }); }
+function setIO(d) { document.getElementById('chatInput').disabled=d; document.getElementById('sendBtn').disabled=d; S.locked=d; }
+function now() { return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
+function safe(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function esc(s)  { return s.replace(/'/g,"&#39;").replace(/"/g,'&quot;'); }
+function animCount(id,from,to,dur,sfx) {
+  const el=document.getElementById(id); if(!el) return;
+  const steps=55, step=(to-from)/steps; let cur=from;
+  const t=setInterval(()=>{ cur+=step; if(cur>=to){cur=to;clearInterval(t);} el.textContent=Math.round(cur)+sfx; },dur/steps);
+}
+
+/* ══════════  MULTILINGUAL SYSTEM  ══════════ */
+const TRANSLATIONS = {
+  en: {
+    chat: 'Chat', dashboard: 'Dashboard', premium: 'Premium',
+    typeMessage: 'Type a message…',
+    greeting: `Hey there, champion! 💪 I'm your <strong>FitX Coach</strong> — your personal AI fitness trainer.<br><br>Let's build your personalised plan! First, what's your <strong>name</strong>?`,
+    age: (p) => `Great to meet you, <strong>${p.name}</strong>! 🔥<br>How old are you? <small style="color:var(--text-sub)">(10–100)</small>`,
+    gender: 'What\'s your <strong>gender</strong>?',
+    weight: 'What\'s your current <strong>weight in kg</strong>? <small style="color:var(--text-sub)">(e.g. 70)</small>',
+    height: 'And your <strong>height in cm</strong>? <small style="color:var(--text-sub)">(e.g. 175)</small>',
+    diet: 'What\'s your <strong>dietary preference</strong>?',
+    activity: 'What\'s your daily <strong>activity level</strong>?',
+    workoutType: 'What type of <strong>workout</strong> do you prefer?',
+    workoutTime: 'When do you usually like to <strong>workout</strong>?',
+    duration: 'How many <strong>minutes per session</strong>? <small style="color:var(--text-sub)">(10–300 min)</small>',
+    goal: 'What\'s your <strong>primary fitness goal</strong>?',
+    photo: 'Almost done! Want to upload a <strong>progress photo</strong>? (Optional — great for tracking)',
+    genderOpts: ['Male','Female','Non-binary','Prefer not to say'],
+    dietOpts: ['Vegetarian 🥦','Vegan 🌱','Non-Vegetarian 🍗','Eggetarian 🥚','No Preference 🍽️'],
+    activityOpts: ['Sedentary 🪑','Lightly Active 🚶','Moderately Active 🏃','Very Active ⚡','Extremely Active 🔥'],
+    workoutTypeOpts: ['Home Workout 🏠','Gym 🏋️','Cardio 🏃‍♂️','Strength Training 💪','Yoga 🧘','Mixed 🔀'],
+    workoutTimeOpts: ['Early Morning 🌅','Morning ☀️','Afternoon 🌤️','Evening 🌆','Night 🌙'],
+    goalOpts: ['Lose Weight ⬇️','Build Muscle 💪','Improve Endurance 🏅','Stay Healthy 🌿','Increase Flexibility 🤸'],
+    skipPhoto: 'Skip →', uploadPhoto: 'Upload Photo',
+    profileComplete: (p,bmi,bmiLabel) => `🎉 <strong>Profile complete, ${p.name}!</strong><br><br>📊 <strong>BMI:</strong> ${bmi} — ${bmiLabel}<br>🔥 <strong>Daily Calorie Target:</strong> ~${p.tdee} kcal/day<br>🥦 <strong>Diet:</strong> ${p.diet||'No preference'}<br>⚡ <strong>Activity:</strong> ${p.activity}<br>🏋️ <strong>Workout:</strong> ${p.workoutType}<br>⏰ <strong>Schedule:</strong> ${p.workoutTime} · ${p.duration} min/session<br>🎯 <strong>Goal:</strong> ${p.goal}<br><br>Switch to the <strong>Dashboard</strong> tab to see your stats, meal plan & workout! You can also just <strong>chat with me</strong> anytime. 💪`,
+    nameErr: 'Please enter a valid name (at least 2 characters).',
+    ageErr: 'Please enter a valid age between 10 and 100.',
+    weightErr: 'Please enter a valid weight between 20–300 kg.',
+    heightErr: 'Please enter a valid height between 50–250 cm.',
+    durationErr: 'Please enter a duration between 10 and 300 minutes.',
+    reminderMsgs: (n,g) => [
+      `${n}, stay hydrated! 💧 8 glasses today!`,
+      `You're one workout away from a better mood, ${n}! 🔥`,
+      `Goal: ${g||'stay fit'}. Keep going! 🏆`,
+      `Rest is part of the plan — your muscles grow during recovery! 💪`
+    ],
+    reminderTitle: 'FitX Reminder',
+    profileCompleteToast: (n) => `Welcome, ${n}! Your dashboard is ready.`,
+    profileCompleteToastTitle: 'Profile Complete!',
+  },
+  hi: {
+    chat: 'चैट', dashboard: 'डैशबोर्ड', premium: 'प्रीमियम',
+    typeMessage: 'संदेश लिखें…',
+    greeting: `नमस्ते, चैंपियन! 💪 मैं आपका <strong>FitX कोच</strong> हूँ — आपका व्यक्तिगत AI फिटनेस ट्रेनर।<br><br>चलिए आपकी योजना बनाते हैं! पहले, आपका <strong>नाम</strong> क्या है?`,
+    age: (p) => `मिलकर खुशी हुई, <strong>${p.name}</strong>! 🔥<br>आपकी उम्र क्या है? <small style="color:var(--text-sub)">(10–100)</small>`,
+    gender: 'आपका <strong>लिंग</strong> क्या है?',
+    weight: 'आपका वर्तमान <strong>वजन (kg)</strong> कितना है? <small style="color:var(--text-sub)">(जैसे 70)</small>',
+    height: 'और आपकी <strong>ऊंचाई (cm)</strong>? <small style="color:var(--text-sub)">(जैसे 175)</small>',
+    diet: 'आपकी <strong>आहार प्राथमिकता</strong> क्या है?',
+    activity: 'आपका दैनिक <strong>गतिविधि स्तर</strong> क्या है?',
+    workoutType: 'आप किस प्रकार का <strong>वर्कआउट</strong> पसंद करते हैं?',
+    workoutTime: 'आप आमतौर पर <strong>वर्कआउट</strong> कब करते हैं?',
+    duration: '<strong>प्रति सत्र मिनट</strong>? <small style="color:var(--text-sub)">(10–300 मिनट)</small>',
+    goal: 'आपका <strong>मुख्य फिटनेस लक्ष्य</strong> क्या है?',
+    photo: 'लगभग हो गया! क्या आप <strong>प्रगति फोटो</strong> अपलोड करना चाहेंगे? (वैकल्पिक)',
+    genderOpts: ['पुरुष','महिला','नॉन-बाइनरी','बताना नहीं चाहते'],
+    dietOpts: ['शाकाहारी 🥦','वीगन 🌱','मांसाहारी 🍗','एगेटेरियन 🥚','कोई प्राथमिकता नहीं 🍽️'],
+    activityOpts: ['निष्क्रिय 🪑','थोड़ा सक्रिय 🚶','मध्यम सक्रिय 🏃','बहुत सक्रिय ⚡','अत्यंत सक्रिय 🔥'],
+    workoutTypeOpts: ['होम वर्कआउट 🏠','जिम 🏋️','कार्डियो 🏃‍♂️','स्ट्रेंथ ट्रेनिंग 💪','योग 🧘','मिश्रित 🔀'],
+    workoutTimeOpts: ['सुबह जल्दी 🌅','सुबह ☀️','दोपहर 🌤️','शाम 🌆','रात 🌙'],
+    goalOpts: ['वजन घटाना ⬇️','मांसपेशी बनाना 💪','सहनशक्ति बढ़ाना 🏅','स्वस्थ रहना 🌿','लचीलापन बढ़ाना 🤸'],
+    skipPhoto: 'छोड़ें →', uploadPhoto: 'फोटो अपलोड करें',
+    profileComplete: (p,bmi,bmiLabel) => `🎉 <strong>प्रोफाइल पूरी, ${p.name}!</strong><br><br>📊 <strong>BMI:</strong> ${bmi} — ${bmiLabel}<br>🔥 <strong>दैनिक कैलोरी लक्ष्य:</strong> ~${p.tdee} kcal/day<br>🥦 <strong>आहार:</strong> ${p.diet||'कोई प्राथमिकता नहीं'}<br>⚡ <strong>गतिविधि:</strong> ${p.activity}<br>🏋️ <strong>वर्कआउट:</strong> ${p.workoutType}<br>⏰ <strong>समय:</strong> ${p.workoutTime} · ${p.duration} मिनट/सत्र<br>🎯 <strong>लक्ष्य:</strong> ${p.goal}<br><br><strong>डैशबोर्ड</strong> टैब पर जाएं! 💪`,
+    nameErr: 'कृपया एक वैध नाम दर्ज करें (कम से कम 2 अक्षर)।',
+    ageErr: 'कृपया 10 से 100 के बीच एक वैध उम्र दर्ज करें।',
+    weightErr: 'कृपया 20–300 kg के बीच एक वैध वजन दर्ज करें।',
+    heightErr: 'कृपया 50–250 cm के बीच एक वैध ऊंचाई दर्ज करें।',
+    durationErr: 'कृपया 10 से 300 मिनट के बीच एक अवधि दर्ज करें।',
+    reminderMsgs: (n,g) => [`${n}, हाइड्रेटेड रहें! 💧`, `एक वर्कआउट से मूड बेहतर होगा, ${n}! 🔥`, `लक्ष्य: ${g||'फिट रहें'}। जारी रखें! 🏆`, `आराम भी योजना का हिस्सा है! 💪`],
+    reminderTitle: 'FitX रिमाइंडर',
+    profileCompleteToast: (n) => `स्वागत है, ${n}! आपका डैशबोर्ड तैयार है।`,
+    profileCompleteToastTitle: 'प्रोफाइल पूरी!',
+  },
+  mr: {
+    chat: 'चॅट', dashboard: 'डॅशबोर्ड', premium: 'प्रीमियम',
+    typeMessage: 'संदेश टाइप करा…',
+    greeting: `नमस्कार, चॅम्पियन! 💪 मी तुमचा <strong>FitX कोच</strong> आहे.<br><br>तुमची योजना बनवूया! आधी, तुमचे <strong>नाव</strong> काय आहे?`,
+    age: (p) => `भेटून आनंद झाला, <strong>${p.name}</strong>! 🔥<br>तुमचे वय किती आहे? <small style="color:var(--text-sub)">(10–100)</small>`,
+    gender: 'तुमचे <strong>लिंग</strong> काय आहे?',
+    weight: 'तुमचे सध्याचे <strong>वजन (kg)</strong>? <small style="color:var(--text-sub)">(उदा. 70)</small>',
+    height: 'तुमची <strong>उंची (cm)</strong>? <small style="color:var(--text-sub)">(उदा. 175)</small>',
+    diet: 'तुमची <strong>आहार प्राधान्य</strong>?',
+    activity: 'तुमची दैनिक <strong>क्रियाशीलता पातळी</strong>?',
+    workoutType: 'तुम्हाला कोणत्या प्रकारचे <strong>व्यायाम</strong> आवडते?',
+    workoutTime: 'तुम्ही सामान्यतः <strong>व्यायाम</strong> केव्हा करता?',
+    duration: '<strong>प्रति सत्र मिनिटे</strong>? <small style="color:var(--text-sub)">(10–300 मिनिटे)</small>',
+    goal: 'तुमचे <strong>मुख्य फिटनेस ध्येय</strong> काय आहे?',
+    photo: 'जवळपास झाले! <strong>प्रगती फोटो</strong> अपलोड करायचा आहे का? (ऐच्छिक)',
+    genderOpts: ['पुरुष','महिला','नॉन-बायनरी','सांगणे नको'],
+    dietOpts: ['शाकाहारी 🥦','वेगन 🌱','मांसाहारी 🍗','एगेटेरियन 🥚','कोणतीही प्राधान्य नाही 🍽️'],
+    activityOpts: ['निष्क्रिय 🪑','थोडे सक्रिय 🚶','मध्यम सक्रिय 🏃','खूप सक्रिय ⚡','अत्यंत सक्रिय 🔥'],
+    workoutTypeOpts: ['घरी व्यायाम 🏠','जिम 🏋️','कार्डिओ 🏃‍♂️','स्ट्रेंथ ट्रेनिंग 💪','योग 🧘','मिश्रित 🔀'],
+    workoutTimeOpts: ['पहाटे 🌅','सकाळी ☀️','दुपारी 🌤️','संध्याकाळी 🌆','रात्री 🌙'],
+    goalOpts: ['वजन कमी करा ⬇️','स्नायू बनवा 💪','सहनशक्ती वाढवा 🏅','निरोगी राहा 🌿','लवचिकता वाढवा 🤸'],
+    skipPhoto: 'वगळा →', uploadPhoto: 'फोटो अपलोड करा',
+    profileComplete: (p,bmi,bmiLabel) => `🎉 <strong>प्रोफाइल पूर्ण, ${p.name}!</strong><br><br>📊 <strong>BMI:</strong> ${bmi} — ${bmiLabel}<br>🔥 <strong>दैनिक कॅलरी लक्ष्य:</strong> ~${p.tdee} kcal/day<br><strong>डॅशबोर्ड</strong> टॅबवर जा! 💪`,
+    nameErr: 'कृपया वैध नाव प्रविष्ट करा (किमान 2 अक्षरे)।',
+    ageErr: 'कृपया 10 ते 100 दरम्यान वय प्रविष्ट करा।',
+    weightErr: 'कृपया 20–300 kg दरम्यान वजन प्रविष्ट करा।',
+    heightErr: 'कृपया 50–250 cm दरम्यान उंची प्रविष्ट करा।',
+    durationErr: 'कृपया 10 ते 300 मिनिटांमध्ये कालावधी प्रविष्ट करा।',
+    reminderMsgs: (n,g) => [`${n}, हायड्रेटेड रहा! 💧`, `एक व्यायाम मूड सुधारेल, ${n}! 🔥`, `ध्येय: ${g||'फिट राहा'}। चालू ठेवा! 🏆`, `विश्रांती देखील महत्त्वाची आहे! 💪`],
+    reminderTitle: 'FitX स्मरणपत्र',
+    profileCompleteToast: (n) => `स्वागत आहे, ${n}! तुमचा डॅशबोर्ड तयार आहे।`,
+    profileCompleteToastTitle: 'प्रोफाइल पूर्ण!',
+  },
+  ta: {
+    chat: 'அரட்டை', dashboard: 'டாஷ்போர்டு', premium: 'பிரீமியம்',
+    typeMessage: 'செய்தி தட்டச்சு செய்யுங்கள்…',
+    greeting: `வணக்கம், சாம்பியன்! 💪 நான் உங்கள் <strong>FitX Coach</strong>.<br><br>உங்கள் திட்டம் தயாரிக்கலாம்! முதலில், உங்கள் <strong>பெயர்</strong> என்ன?`,
+    age: (p) => `சந்தித்ததில் மகிழ்ச்சி, <strong>${p.name}</strong>! 🔥<br>உங்கள் வயது என்ன? <small style="color:var(--text-sub)">(10–100)</small>`,
+    gender: 'உங்கள் <strong>பாலினம்</strong> என்ன?',
+    weight: 'உங்கள் தற்போதைய <strong>எடை (kg)</strong>? <small style="color:var(--text-sub)">(எ.கா. 70)</small>',
+    height: 'உங்கள் <strong>உயரம் (cm)</strong>? <small style="color:var(--text-sub)">(எ.கா. 175)</small>',
+    diet: 'உங்கள் <strong>உணவு விருப்பம்</strong>?',
+    activity: 'உங்கள் தினசரி <strong>செயல்பாடு நிலை</strong>?',
+    workoutType: 'நீங்கள் விரும்பும் <strong>உடற்பயிற்சி வகை</strong>?',
+    workoutTime: 'நீங்கள் பொதுவாக எப்போது <strong>உடற்பயிற்சி</strong> செய்கிறீர்கள்?',
+    duration: '<strong>ஒரு அமர்வில் நிமிடங்கள்</strong>? <small style="color:var(--text-sub)">(10–300)</small>',
+    goal: 'உங்கள் <strong>முக்கிய இலக்கு</strong>?',
+    photo: 'கிட்டத்தட்ட முடிந்தது! <strong>புகைப்படம்</strong> பதிவேற்ற விரும்புகிறீர்களா? (விருப்பமானது)',
+    genderOpts: ['ஆண்','பெண்','நான்-பைனரி','சொல்ல விரும்பவில்லை'],
+    dietOpts: ['சைவம் 🥦','வீகன் 🌱','அசைவம் 🍗','முட்டை சாப்பிடுவோர் 🥚','விருப்பமில்லை 🍽️'],
+    activityOpts: ['செயலற்றவர் 🪑','சிறிது சுறுசுறுப்பு 🚶','மிதமான சுறுசுறுப்பு 🏃','மிகவும் சுறுசுறுப்பு ⚡','மிகவும் அதிக சுறுசுறுப்பு 🔥'],
+    workoutTypeOpts: ['வீட்டில் 🏠','ஜிம் 🏋️','கார்டியோ 🏃‍♂️','வலிமை பயிற்சி 💪','யோகா 🧘','கலப்பு 🔀'],
+    workoutTimeOpts: ['அதிகாலை 🌅','காலை ☀️','மதியம் 🌤️','மாலை 🌆','இரவு 🌙'],
+    goalOpts: ['எடை குறைக்க ⬇️','தசை வளர்க்க 💪','சகிப்புத்தன்மை மேம்படுத்த 🏅','ஆரோக்கியமாக இருக்க 🌿','நெகிழ்வு அதிகரிக்க 🤸'],
+    skipPhoto: 'தவிர்க்கவும் →', uploadPhoto: 'புகைப்படம் பதிவேற்று',
+    profileComplete: (p,bmi,bmiLabel) => `🎉 <strong>சுயவிவரம் முடிந்தது, ${p.name}!</strong><br><br>📊 <strong>BMI:</strong> ${bmi} — ${bmiLabel}<br>🔥 <strong>தினசரி கலோரி இலக்கு:</strong> ~${p.tdee} kcal/day<br><strong>டாஷ்போர்டு</strong> தாவலுக்கு செல்லுங்கள்! 💪`,
+    nameErr: 'சரியான பெயரை உள்ளிடவும் (குறைந்தது 2 எழுத்துகள்).',
+    ageErr: '10 முதல் 100 வரை சரியான வயதை உள்ளிடவும்.',
+    weightErr: '20–300 kg இடையே சரியான எடையை உள்ளிடவும்.',
+    heightErr: '50–250 cm இடையே சரியான உயரத்தை உள்ளிடவும்.',
+    durationErr: '10 முதல் 300 நிமிடங்கள் இடையே கால அளவை உள்ளிடவும்.',
+    reminderMsgs: (n,g) => [`${n}, நீரேற்றமாக இருங்கள்! 💧`, `ஒரு உடற்பயிற்சி மனநிலையை மேம்படுத்தும், ${n}! 🔥`, `இலக்கு: ${g||'ஆரோக்கியமாக இருங்கள்'}. தொடருங்கள்! 🏆`, `ஓய்வும் திட்டத்தின் பகுதி! 💪`],
+    reminderTitle: 'FitX நினைவூட்டல்',
+    profileCompleteToast: (n) => `வரவேற்கிறோம், ${n}! உங்கள் டாஷ்போர்டு தயார்.`,
+    profileCompleteToastTitle: 'சுயவிவரம் முடிந்தது!',
+  },
+  te: {
+    chat: 'చాట్', dashboard: 'డాష్‌బోర్డ్', premium: 'ప్రీమియమ్',
+    typeMessage: 'సందేశం టైప్ చేయండి…',
+    greeting: `నమస్కారం, ఛాంపియన్! 💪 నేను మీ <strong>FitX కోచ్</strong>.<br><br>మీ ప్రణాళిక రూపొందించుకుందాం! మీ <strong>పేరు</strong> ఏమిటి?`,
+    age: (p) => `కలవడం సంతోషంగా ఉంది, <strong>${p.name}</strong>! 🔥<br>మీ వయస్సు ఎంత? <small style="color:var(--text-sub)">(10–100)</small>`,
+    gender: 'మీ <strong>లింగం</strong> ఏమిటి?',
+    weight: 'మీ ప్రస్తుత <strong>బరువు (kg)</strong>? <small style="color:var(--text-sub)">(ఉదా. 70)</small>',
+    height: 'మీ <strong>ఎత్తు (cm)</strong>? <small style="color:var(--text-sub)">(ఉదా. 175)</small>',
+    diet: 'మీ <strong>ఆహార ప్రాధాన్యత</strong>?',
+    activity: 'మీ రోజువారీ <strong>కార్యాచరణ స్థాయి</strong>?',
+    workoutType: 'మీరు ఇష్టపడే <strong>వ్యాయామ రకం</strong>?',
+    workoutTime: 'మీరు సాధారణంగా <strong>వ్యాయామం</strong> ఎప్పుడు చేస్తారు?',
+    duration: '<strong>సెషన్‌కు నిమిషాలు</strong>? <small style="color:var(--text-sub)">(10–300)</small>',
+    goal: 'మీ <strong>ప్రధాన ఫిట్‌నెస్ లక్ష్యం</strong>?',
+    photo: 'దాదాపు పూర్తయింది! <strong>ప్రగతి ఫోటో</strong> అప్‌లోడ్ చేయాలనుకుంటున్నారా? (ఐచ్ఛికం)',
+    genderOpts: ['పురుషుడు','స్త్రీ','నాన్-బైనరీ','చెప్పడం ఇష్టం లేదు'],
+    dietOpts: ['శాకాహారి 🥦','వేగన్ 🌱','మాంసాహారి 🍗','ఎగ్జిటేరియన్ 🥚','ఏదైనా సరే 🍽️'],
+    activityOpts: ['నిష్క్రియంగా 🪑','కొంచెం చురుకు 🚶','మితంగా చురుకు 🏃','చాలా చురుకు ⚡','అత్యంత చురుకు 🔥'],
+    workoutTypeOpts: ['ఇంట్లో వ్యాయామం 🏠','జిమ్ 🏋️','కార్డియో 🏃‍♂️','స్ట్రెంత్ ట్రైనింగ్ 💪','యోగా 🧘','మిశ్రమం 🔀'],
+    workoutTimeOpts: ['తెల్లవారుజామున 🌅','ఉదయం ☀️','మధ్యాహ్నం 🌤️','సాయంత్రం 🌆','రాత్రి 🌙'],
+    goalOpts: ['బరువు తగ్గించుకోవడం ⬇️','కండరాలు పెంచుకోవడం 💪','సహనం మెరుగుపరచుకోవడం 🏅','ఆరోగ్యంగా ఉండటం 🌿','వశ్యత పెంచుకోవడం 🤸'],
+    skipPhoto: 'దాటవేయి →', uploadPhoto: 'ఫోటో అప్‌లోడ్ చేయి',
+    profileComplete: (p,bmi,bmiLabel) => `🎉 <strong>ప్రొఫైల్ పూర్తయింది, ${p.name}!</strong><br><br>📊 <strong>BMI:</strong> ${bmi} — ${bmiLabel}<br>🔥 <strong>రోజువారీ కేలరీ లక్ష్యం:</strong> ~${p.tdee} kcal/day<br><strong>డాష్‌బోర్డ్</strong> ట్యాబ్‌కు వెళ్ళండి! 💪`,
+    nameErr: 'దయచేసి చెల్లుబాటయ్యే పేరు నమోదు చేయండి (కనీసం 2 అక్షరాలు).',
+    ageErr: '10 నుండి 100 మధ్య చెల్లుబాటయ్యే వయస్సు నమోదు చేయండి.',
+    weightErr: '20–300 kg మధ్య చెల్లుబాటయ్యే బరువు నమోదు చేయండి.',
+    heightErr: '50–250 cm మధ్య చెల్లుబాటయ్యే ఎత్తు నమోదు చేయండి.',
+    durationErr: '10 నుండి 300 నిమిషాల మధ్య వ్యవధి నమోదు చేయండి.',
+    reminderMsgs: (n,g) => [`${n}, హైడ్రేటెడ్ గా ఉండండి! 💧`, `ఒక వ్యాయామం మూడ్‌ని మెరుగుపరుస్తుంది, ${n}! 🔥`, `లక్ష్యం: ${g||'ఆరోగ్యంగా ఉండు'}. కొనసాగించండి! 🏆`, `విశ్రాంతి కూడా ప్రణాళికలో భాగం! 💪`],
+    reminderTitle: 'FitX రిమైండర్',
+    profileCompleteToast: (n) => `స్వాగతం, ${n}! మీ డాష్‌బోర్డ్ సిద్ధంగా ఉంది.`,
+    profileCompleteToastTitle: 'ప్రొఫైల్ పూర్తయింది!',
+  },
+  bn: {
+    chat: 'চ্যাট', dashboard: 'ড্যাশবোর্ড', premium: 'প্রিমিয়াম',
+    typeMessage: 'বার্তা টাইপ করুন…',
+    greeting: `হ্যালো, চ্যাম্পিয়ন! 💪 আমি আপনার <strong>FitX কোচ</strong>।<br><br>আপনার পরিকল্পনা তৈরি করি! প্রথমে আপনার <strong>নাম</strong> কী?`,
+    age: (p) => `দেখা হয়ে ভালো লাগল, <strong>${p.name}</strong>! 🔥<br>আপনার বয়স কত? <small style="color:var(--text-sub)">(10–100)</small>`,
+    gender: 'আপনার <strong>লিঙ্গ</strong> কী?',
+    weight: 'আপনার বর্তমান <strong>ওজন (kg)</strong>? <small style="color:var(--text-sub)">(যেমন 70)</small>',
+    height: 'আপনার <strong>উচ্চতা (cm)</strong>? <small style="color:var(--text-sub)">(যেমন 175)</small>',
+    diet: 'আপনার <strong>খাদ্যাভ্যাস পছন্দ</strong>?',
+    activity: 'আপনার দৈনিক <strong>কার্যকলাপের মাত্রা</strong>?',
+    workoutType: 'আপনি কোন ধরনের <strong>ব্যায়াম</strong> পছন্দ করেন?',
+    workoutTime: 'আপনি সাধারণত কখন <strong>ব্যায়াম</strong> করেন?',
+    duration: 'প্রতি সেশনে <strong>কত মিনিট</strong>? <small style="color:var(--text-sub)">(10–300)</small>',
+    goal: 'আপনার <strong>প্রধান ফিটনেস লক্ষ্য</strong>?',
+    photo: 'প্রায় শেষ! একটি <strong>অগ্রগতির ছবি</strong> আপলোড করতে চান? (ঐচ্ছিক)',
+    genderOpts: ['পুরুষ','মহিলা','নন-বাইনারি','বলতে চাই না'],
+    dietOpts: ['নিরামিষ 🥦','ভেগান 🌱','মাংসাশী 🍗','এগেটেরিয়ান 🥚','কোনো পছন্দ নেই 🍽️'],
+    activityOpts: ['নিষ্ক্রিয় 🪑','সামান্য সক্রিয় 🚶','মাঝারি সক্রিয় 🏃','খুব সক্রিয় ⚡','অত্যন্ত সক্রিয় 🔥'],
+    workoutTypeOpts: ['বাড়িতে ব্যায়াম 🏠','জিম 🏋️','কার্ডিও 🏃‍♂️','শক্তি প্রশিক্ষণ 💪','যোগব্যায়াম 🧘','মিশ্রিত 🔀'],
+    workoutTimeOpts: ['ভোরবেলা 🌅','সকালে ☀️','দুপুরে 🌤️','বিকেলে 🌆','রাতে 🌙'],
+    goalOpts: ['ওজন কমানো ⬇️','পেশী তৈরি করা 💪','সহনশক্তি উন্নত করা 🏅','সুস্থ থাকা 🌿','নমনীয়তা বাড়ানো 🤸'],
+    skipPhoto: 'এড়িয়ে যান →', uploadPhoto: 'ছবি আপলোড করুন',
+    profileComplete: (p,bmi,bmiLabel) => `🎉 <strong>প্রোফাইল সম্পূর্ণ, ${p.name}!</strong><br><br>📊 <strong>BMI:</strong> ${bmi} — ${bmiLabel}<br>🔥 <strong>দৈনিক ক্যালোরি লক্ষ্য:</strong> ~${p.tdee} kcal/day<br><strong>ড্যাশবোর্ড</strong> ট্যাবে যান! 💪`,
+    nameErr: 'অনুগ্রহ করে বৈধ নাম দিন (কমপক্ষে 2 অক্ষর)।',
+    ageErr: '10 থেকে 100 এর মধ্যে বৈধ বয়স দিন।',
+    weightErr: '20–300 kg এর মধ্যে বৈধ ওজন দিন।',
+    heightErr: '50–250 cm এর মধ্যে বৈধ উচ্চতা দিন।',
+    durationErr: '10 থেকে 300 মিনিটের মধ্যে সময়কাল দিন।',
+    reminderMsgs: (n,g) => [`${n}, হাইড্রেটেড থাকুন! 💧`, `একটি ব্যায়াম মেজাজ ভালো করবে, ${n}! 🔥`, `লক্ষ্য: ${g||'সুস্থ থাকুন'}. চালিয়ে যান! 🏆`, `বিশ্রামও পরিকল্পনার অংশ! 💪`],
+    reminderTitle: 'FitX রিমাইন্ডার',
+    profileCompleteToast: (n) => `স্বাগতম, ${n}! আপনার ড্যাশবোর্ড প্রস্তুত।`,
+    profileCompleteToastTitle: 'প্রোফাইল সম্পূর্ণ!',
+  },
+  es: {
+    chat: 'Chat', dashboard: 'Tablero', premium: 'Premium',
+    typeMessage: 'Escribe un mensaje…',
+    greeting: `¡Hola, campeón! 💪 Soy tu <strong>FitX Coach</strong> — tu entrenador personal de IA.<br><br>¡Construyamos tu plan! Primero, ¿cuál es tu <strong>nombre</strong>?`,
+    age: (p) => `¡Encantado de conocerte, <strong>${p.name}</strong>! 🔥<br>¿Cuántos años tienes? <small style="color:var(--text-sub)">(10–100)</small>`,
+    gender: '¿Cuál es tu <strong>género</strong>?',
+    weight: '¿Cuál es tu <strong>peso actual en kg</strong>? <small style="color:var(--text-sub)">(ej. 70)</small>',
+    height: '¿Y tu <strong>altura en cm</strong>? <small style="color:var(--text-sub)">(ej. 175)</small>',
+    diet: '¿Cuál es tu <strong>preferencia dietética</strong>?',
+    activity: '¿Cuál es tu <strong>nivel de actividad diaria</strong>?',
+    workoutType: '¿Qué tipo de <strong>entrenamiento</strong> prefieres?',
+    workoutTime: '¿Cuándo sueles <strong>entrenar</strong>?',
+    duration: '¿<strong>Minutos por sesión</strong>? <small style="color:var(--text-sub)">(10–300 min)</small>',
+    goal: '¿Cuál es tu <strong>objetivo principal de fitness</strong>?',
+    photo: '¡Casi listo! ¿Quieres subir una <strong>foto de progreso</strong>? (Opcional)',
+    genderOpts: ['Masculino','Femenino','No binario','Prefiero no decirlo'],
+    dietOpts: ['Vegetariano 🥦','Vegano 🌱','No vegetariano 🍗','Ovo-vegetariano 🥚','Sin preferencia 🍽️'],
+    activityOpts: ['Sedentario 🪑','Poco activo 🚶','Moderadamente activo 🏃','Muy activo ⚡','Extremadamente activo 🔥'],
+    workoutTypeOpts: ['En casa 🏠','Gimnasio 🏋️','Cardio 🏃‍♂️','Fuerza 💪','Yoga 🧘','Mixto 🔀'],
+    workoutTimeOpts: ['Madrugada 🌅','Mañana ☀️','Tarde 🌤️','Tarde-noche 🌆','Noche 🌙'],
+    goalOpts: ['Perder peso ⬇️','Ganar músculo 💪','Mejorar resistencia 🏅','Mantenerse saludable 🌿','Aumentar flexibilidad 🤸'],
+    skipPhoto: 'Omitir →', uploadPhoto: 'Subir Foto',
+    profileComplete: (p,bmi,bmiLabel) => `🎉 <strong>¡Perfil completo, ${p.name}!</strong><br><br>📊 <strong>IMC:</strong> ${bmi} — ${bmiLabel}<br>🔥 <strong>Calorías diarias:</strong> ~${p.tdee} kcal/día<br>¡Ve a la pestaña <strong>Tablero</strong>! 💪`,
+    nameErr: 'Por favor ingresa un nombre válido (al menos 2 caracteres).',
+    ageErr: 'Por favor ingresa una edad válida entre 10 y 100.',
+    weightErr: 'Por favor ingresa un peso válido entre 20–300 kg.',
+    heightErr: 'Por favor ingresa una altura válida entre 50–250 cm.',
+    durationErr: 'Por favor ingresa una duración entre 10 y 300 minutos.',
+    reminderMsgs: (n,g) => [`${n}, ¡mantente hidratado! 💧`, `¡Estás a un entrenamiento de un mejor humor, ${n}! 🔥`, `Meta: ${g||'estar en forma'}. ¡Sigue adelante! 🏆`, `¡El descanso es parte del plan! 💪`],
+    reminderTitle: 'Recordatorio FitX',
+    profileCompleteToast: (n) => `¡Bienvenido, ${n}! Tu tablero está listo.`,
+    profileCompleteToastTitle: '¡Perfil Completo!',
+  },
+  fr: {
+    chat: 'Chat', dashboard: 'Tableau de bord', premium: 'Premium',
+    typeMessage: 'Écrivez un message…',
+    greeting: `Bonjour, champion! 💪 Je suis votre <strong>FitX Coach</strong> — votre entraîneur IA personnel.<br><br>Créons votre plan! D'abord, quel est votre <strong>prénom</strong>?`,
+    age: (p) => `Ravi de vous rencontrer, <strong>${p.name}</strong>! 🔥<br>Quel est votre âge? <small style="color:var(--text-sub)">(10–100)</small>`,
+    gender: 'Quel est votre <strong>genre</strong>?',
+    weight: 'Quel est votre <strong>poids actuel en kg</strong>? <small style="color:var(--text-sub)">(ex. 70)</small>',
+    height: 'Et votre <strong>taille en cm</strong>? <small style="color:var(--text-sub)">(ex. 175)</small>',
+    diet: 'Quelle est votre <strong>préférence alimentaire</strong>?',
+    activity: 'Quel est votre <strong>niveau d\'activité quotidienne</strong>?',
+    workoutType: 'Quel type d\'<strong>entraînement</strong> préférez-vous?',
+    workoutTime: 'Quand vous entraînez-vous habituellement?',
+    duration: '<strong>Minutes par séance</strong>? <small style="color:var(--text-sub)">(10–300 min)</small>',
+    goal: 'Quel est votre <strong>objectif principal</strong>?',
+    photo: 'Presque terminé! Voulez-vous télécharger une <strong>photo de progression</strong>? (Optionnel)',
+    genderOpts: ['Homme','Femme','Non-binaire','Préfère ne pas dire'],
+    dietOpts: ['Végétarien 🥦','Vegan 🌱','Non végétarien 🍗','Ovo-végétarien 🥚','Sans préférence 🍽️'],
+    activityOpts: ['Sédentaire 🪑','Peu actif 🚶','Modérément actif 🏃','Très actif ⚡','Extrêmement actif 🔥'],
+    workoutTypeOpts: ['À la maison 🏠','Salle de sport 🏋️','Cardio 🏃‍♂️','Musculation 💪','Yoga 🧘','Mixte 🔀'],
+    workoutTimeOpts: ['Tôt le matin 🌅','Matin ☀️','Après-midi 🌤️','Soir 🌆','Nuit 🌙'],
+    goalOpts: ['Perdre du poids ⬇️','Développer les muscles 💪','Améliorer l\'endurance 🏅','Rester en bonne santé 🌿','Augmenter la flexibilité 🤸'],
+    skipPhoto: 'Passer →', uploadPhoto: 'Télécharger Photo',
+    profileComplete: (p,bmi,bmiLabel) => `🎉 <strong>Profil complet, ${p.name}!</strong><br><br>📊 <strong>IMC:</strong> ${bmi} — ${bmiLabel}<br>🔥 <strong>Calories quotidiennes:</strong> ~${p.tdee} kcal/jour<br>Allez à l'onglet <strong>Tableau de bord</strong>! 💪`,
+    nameErr: 'Veuillez entrer un prénom valide (au moins 2 caractères).',
+    ageErr: 'Veuillez entrer un âge valide entre 10 et 100.',
+    weightErr: 'Veuillez entrer un poids valide entre 20–300 kg.',
+    heightErr: 'Veuillez entrer une taille valide entre 50–250 cm.',
+    durationErr: 'Veuillez entrer une durée entre 10 et 300 minutes.',
+    reminderMsgs: (n,g) => [`${n}, restez hydraté! 💧`, `Vous êtes à un entraînement d'une meilleure humeur, ${n}! 🔥`, `Objectif: ${g||'rester en forme'}. Continuez! 🏆`, `Le repos fait partie du plan! 💪`],
+    reminderTitle: 'Rappel FitX',
+    profileCompleteToast: (n) => `Bienvenue, ${n}! Votre tableau de bord est prêt.`,
+    profileCompleteToastTitle: 'Profil Complet!',
+  },
+  de: {
+    chat: 'Chat', dashboard: 'Dashboard', premium: 'Premium',
+    typeMessage: 'Nachricht eingeben…',
+    greeting: `Hallo, Champion! 💪 Ich bin dein <strong>FitX Coach</strong> — dein persönlicher KI-Fitnesstrainer.<br><br>Lass uns deinen Plan erstellen! Zuerst, wie ist dein <strong>Name</strong>?`,
+    age: (p) => `Freut mich, dich kennenzulernen, <strong>${p.name}</strong>! 🔥<br>Wie alt bist du? <small style="color:var(--text-sub)">(10–100)</small>`,
+    gender: 'Was ist dein <strong>Geschlecht</strong>?',
+    weight: 'Was ist dein aktuelles <strong>Gewicht in kg</strong>? <small style="color:var(--text-sub)">(z.B. 70)</small>',
+    height: 'Und deine <strong>Größe in cm</strong>? <small style="color:var(--text-sub)">(z.B. 175)</small>',
+    diet: 'Was ist deine <strong>Ernährungspräferenz</strong>?',
+    activity: 'Was ist dein tägliches <strong>Aktivitätsniveau</strong>?',
+    workoutType: 'Welche Art von <strong>Training</strong> bevorzugst du?',
+    workoutTime: 'Wann trainierst du normalerweise?',
+    duration: '<strong>Minuten pro Einheit</strong>? <small style="color:var(--text-sub)">(10–300 min)</small>',
+    goal: 'Was ist dein <strong>Hauptfitnessziel</strong>?',
+    photo: 'Fast fertig! Möchtest du ein <strong>Fortschrittsfoto</strong> hochladen? (Optional)',
+    genderOpts: ['Männlich','Weiblich','Nicht-binär','Keine Angabe'],
+    dietOpts: ['Vegetarisch 🥦','Vegan 🌱','Fleischessend 🍗','Ovo-vegetarisch 🥚','Keine Präferenz 🍽️'],
+    activityOpts: ['Sitzend 🪑','Wenig aktiv 🚶','Mäßig aktiv 🏃','Sehr aktiv ⚡','Extrem aktiv 🔥'],
+    workoutTypeOpts: ['Zuhause 🏠','Fitnessstudio 🏋️','Cardio 🏃‍♂️','Krafttraining 💪','Yoga 🧘','Gemischt 🔀'],
+    workoutTimeOpts: ['Früh morgens 🌅','Morgens ☀️','Mittags 🌤️','Abends 🌆','Nachts 🌙'],
+    goalOpts: ['Gewicht verlieren ⬇️','Muskeln aufbauen 💪','Ausdauer verbessern 🏅','Gesund bleiben 🌿','Flexibilität steigern 🤸'],
+    skipPhoto: 'Überspringen →', uploadPhoto: 'Foto hochladen',
+    profileComplete: (p,bmi,bmiLabel) => `🎉 <strong>Profil vollständig, ${p.name}!</strong><br><br>📊 <strong>BMI:</strong> ${bmi} — ${bmiLabel}<br>🔥 <strong>Tägliches Kalorienziel:</strong> ~${p.tdee} kcal/Tag<br>Gehe zum <strong>Dashboard</strong>-Tab! 💪`,
+    nameErr: 'Bitte gib einen gültigen Namen ein (mindestens 2 Zeichen).',
+    ageErr: 'Bitte gib ein gültiges Alter zwischen 10 und 100 ein.',
+    weightErr: 'Bitte gib ein gültiges Gewicht zwischen 20–300 kg ein.',
+    heightErr: 'Bitte gib eine gültige Größe zwischen 50–250 cm ein.',
+    durationErr: 'Bitte gib eine Dauer zwischen 10 und 300 Minuten ein.',
+    reminderMsgs: (n,g) => [`${n}, bleib hydratisiert! 💧`, `Du bist ein Training von besserer Stimmung entfernt, ${n}! 🔥`, `Ziel: ${g||'fit bleiben'}. Weitermachen! 🏆`, `Ruhe ist Teil des Plans! 💪`],
+    reminderTitle: 'FitX Erinnerung',
+    profileCompleteToast: (n) => `Willkommen, ${n}! Dein Dashboard ist bereit.`,
+    profileCompleteToastTitle: 'Profil vollständig!',
+  },
+  pt: {
+    chat: 'Chat', dashboard: 'Painel', premium: 'Premium',
+    typeMessage: 'Digite uma mensagem…',
+    greeting: `Olá, campeão! 💪 Sou o seu <strong>FitX Coach</strong> — seu treinador de IA pessoal.<br><br>Vamos criar seu plano! Primeiro, qual é o seu <strong>nome</strong>?`,
+    age: (p) => `Prazer em conhecê-lo, <strong>${p.name}</strong>! 🔥<br>Qual é a sua idade? <small style="color:var(--text-sub)">(10–100)</small>`,
+    gender: 'Qual é o seu <strong>gênero</strong>?',
+    weight: 'Qual é o seu <strong>peso atual em kg</strong>? <small style="color:var(--text-sub)">(ex. 70)</small>',
+    height: 'E sua <strong>altura em cm</strong>? <small style="color:var(--text-sub)">(ex. 175)</small>',
+    diet: 'Qual é a sua <strong>preferência alimentar</strong>?',
+    activity: 'Qual é o seu <strong>nível de atividade diária</strong>?',
+    workoutType: 'Que tipo de <strong>treino</strong> você prefere?',
+    workoutTime: 'Quando você costuma <strong>treinar</strong>?',
+    duration: '<strong>Minutos por sessão</strong>? <small style="color:var(--text-sub)">(10–300 min)</small>',
+    goal: 'Qual é o seu <strong>objetivo principal de fitness</strong>?',
+    photo: 'Quase pronto! Quer fazer upload de uma <strong>foto de progresso</strong>? (Opcional)',
+    genderOpts: ['Masculino','Feminino','Não-binário','Prefiro não dizer'],
+    dietOpts: ['Vegetariano 🥦','Vegano 🌱','Não vegetariano 🍗','Ovo-vegetariano 🥚','Sem preferência 🍽️'],
+    activityOpts: ['Sedentário 🪑','Pouco ativo 🚶','Moderadamente ativo 🏃','Muito ativo ⚡','Extremamente ativo 🔥'],
+    workoutTypeOpts: ['Em casa 🏠','Academia 🏋️','Cardio 🏃‍♂️','Musculação 💪','Yoga 🧘','Misto 🔀'],
+    workoutTimeOpts: ['De manhã cedo 🌅','Manhã ☀️','Tarde 🌤️','Final de tarde 🌆','Noite 🌙'],
+    goalOpts: ['Perder peso ⬇️','Ganhar músculo 💪','Melhorar resistência 🏅','Ficar saudável 🌿','Aumentar flexibilidade 🤸'],
+    skipPhoto: 'Pular →', uploadPhoto: 'Enviar Foto',
+    profileComplete: (p,bmi,bmiLabel) => `🎉 <strong>Perfil completo, ${p.name}!</strong><br><br>📊 <strong>IMC:</strong> ${bmi} — ${bmiLabel}<br>🔥 <strong>Meta diária de calorias:</strong> ~${p.tdee} kcal/dia<br>Vá para a aba <strong>Painel</strong>! 💪`,
+    nameErr: 'Por favor, insira um nome válido (pelo menos 2 caracteres).',
+    ageErr: 'Por favor, insira uma idade válida entre 10 e 100.',
+    weightErr: 'Por favor, insira um peso válido entre 20–300 kg.',
+    heightErr: 'Por favor, insira uma altura válida entre 50–250 cm.',
+    durationErr: 'Por favor, insira uma duração entre 10 e 300 minutos.',
+    reminderMsgs: (n,g) => [`${n}, fique hidratado! 💧`, `Você está a um treino de um humor melhor, ${n}! 🔥`, `Meta: ${g||'ficar em forma'}. Continue! 🏆`, `O descanso faz parte do plano! 💪`],
+    reminderTitle: 'Lembrete FitX',
+    profileCompleteToast: (n) => `Bem-vindo, ${n}! Seu painel está pronto.`,
+    profileCompleteToastTitle: 'Perfil Completo!',
+  },
+  ar: {
+    chat: 'دردشة', dashboard: 'لوحة التحكم', premium: 'مميز',
+    typeMessage: 'اكتب رسالة…',
+    greeting: `مرحباً، بطل! 💪 أنا <strong>FitX Coach</strong> — مدربك الشخصي للياقة البدنية بالذكاء الاصطناعي.<br><br>لنبنِ خطتك! أولاً، ما <strong>اسمك</strong>؟`,
+    age: (p) => `سعيد بمقابلتك، <strong>${p.name}</strong>! 🔥<br>كم عمرك؟ <small style="color:var(--text-sub)">(10–100)</small>`,
+    gender: 'ما <strong>جنسك</strong>؟',
+    weight: 'ما <strong>وزنك الحالي بالكيلوجرام</strong>؟ <small style="color:var(--text-sub)">(مثل 70)</small>',
+    height: 'و <strong>طولك بالسنتيمتر</strong>؟ <small style="color:var(--text-sub)">(مثل 175)</small>',
+    diet: 'ما <strong>تفضيلك الغذائي</strong>؟',
+    activity: 'ما <strong>مستوى نشاطك اليومي</strong>؟',
+    workoutType: 'ما نوع <strong>التمرين</strong> الذي تفضله؟',
+    workoutTime: 'متى تتمرن عادةً؟',
+    duration: '<strong>دقائق في الجلسة</strong>؟ <small style="color:var(--text-sub)">(10–300 دقيقة)</small>',
+    goal: 'ما <strong>هدفك الرئيسي للياقة البدنية</strong>؟',
+    photo: 'تقريباً انتهينا! هل تريد رفع <strong>صورة تقدم</strong>؟ (اختياري)',
+    genderOpts: ['ذكر','أنثى','غير ثنائي','أفضل عدم الإفصاح'],
+    dietOpts: ['نباتي 🥦','نباتي صرف 🌱','غير نباتي 🍗','بيضوي نباتي 🥚','لا تفضيل 🍽️'],
+    activityOpts: ['خامل 🪑','نشط قليلاً 🚶','نشط معتدل 🏃','نشط جداً ⚡','نشط للغاية 🔥'],
+    workoutTypeOpts: ['في المنزل 🏠','صالة رياضية 🏋️','كارديو 🏃‍♂️','تدريب القوة 💪','يوغا 🧘','مختلط 🔀'],
+    workoutTimeOpts: ['فجراً 🌅','صباحاً ☀️','ظهراً 🌤️','مساءً 🌆','ليلاً 🌙'],
+    goalOpts: ['إنقاص الوزن ⬇️','بناء العضلات 💪','تحسين التحمل 🏅','البقاء بصحة جيدة 🌿','زيادة المرونة 🤸'],
+    skipPhoto: 'تخطي ←', uploadPhoto: 'رفع صورة',
+    profileComplete: (p,bmi,bmiLabel) => `🎉 <strong>اكتمل الملف الشخصي، ${p.name}!</strong><br><br>📊 <strong>مؤشر كتلة الجسم:</strong> ${bmi} — ${bmiLabel}<br>🔥 <strong>هدف السعرات اليومية:</strong> ~${p.tdee} سعرة/يوم<br>انتقل إلى تبويب <strong>لوحة التحكم</strong>! 💪`,
+    nameErr: 'الرجاء إدخال اسم صحيح (حرفان على الأقل).',
+    ageErr: 'الرجاء إدخال عمر صحيح بين 10 و100.',
+    weightErr: 'الرجاء إدخال وزن صحيح بين 20–300 كجم.',
+    heightErr: 'الرجاء إدخال طول صحيح بين 50–250 سم.',
+    durationErr: 'الرجاء إدخال مدة بين 10 و300 دقيقة.',
+    reminderMsgs: (n,g) => [`${n}، ابقَ رطباً! 💧`, `أنت على بُعد تمرين واحد من مزاج أفضل، ${n}! 🔥`, `الهدف: ${g||'ابقَ بصحة جيدة'}. استمر! 🏆`, `الراحة جزء من الخطة! 💪`],
+    reminderTitle: 'تذكير FitX',
+    profileCompleteToast: (n) => `مرحباً بك، ${n}! لوحة التحكم جاهزة.`,
+    profileCompleteToastTitle: 'اكتمل الملف الشخصي!',
+  },
+  zh: {
+    chat: '聊天', dashboard: '仪表板', premium: '高级版',
+    typeMessage: '输入消息…',
+    greeting: `你好，冠军！💪 我是您的 <strong>FitX 教练</strong> — 您的个人AI健身教练。<br><br>让我们制定您的计划！首先，您的<strong>名字</strong>是什么？`,
+    age: (p) => `很高兴认识你，<strong>${p.name}</strong>！🔥<br>您多大了？<small style="color:var(--text-sub)">(10–100)</small>`,
+    gender: '您的<strong>性别</strong>是什么？',
+    weight: '您目前的<strong>体重（公斤）</strong>？<small style="color:var(--text-sub)">(如 70)</small>',
+    height: '您的<strong>身高（厘米）</strong>？<small style="color:var(--text-sub)">(如 175)</small>',
+    diet: '您的<strong>饮食偏好</strong>是什么？',
+    activity: '您的日常<strong>活动水平</strong>？',
+    workoutType: '您偏好哪种<strong>锻炼方式</strong>？',
+    workoutTime: '您通常什么时候<strong>锻炼</strong>？',
+    duration: '每次<strong>训练分钟数</strong>？<small style="color:var(--text-sub)">(10–300 分钟)</small>',
+    goal: '您的<strong>主要健身目标</strong>是什么？',
+    photo: '快完成了！想上传一张<strong>进度照片</strong>吗？（可选）',
+    genderOpts: ['男性','女性','非二元性别','不想透露'],
+    dietOpts: ['素食 🥦','纯素 🌱','荤食 🍗','蛋素食 🥚','无偏好 🍽️'],
+    activityOpts: ['久坐 🪑','轻微活动 🚶','适度活动 🏃','非常活跃 ⚡','极度活跃 🔥'],
+    workoutTypeOpts: ['在家锻炼 🏠','健身房 🏋️','有氧运动 🏃‍♂️','力量训练 💪','瑜伽 🧘','综合 🔀'],
+    workoutTimeOpts: ['清晨 🌅','上午 ☀️','下午 🌤️','傍晚 🌆','晚上 🌙'],
+    goalOpts: ['减重 ⬇️','增肌 💪','提高耐力 🏅','保持健康 🌿','增加灵活性 🤸'],
+    skipPhoto: '跳过 →', uploadPhoto: '上传照片',
+    profileComplete: (p,bmi,bmiLabel) => `🎉 <strong>档案完成，${p.name}！</strong><br><br>📊 <strong>BMI：</strong>${bmi} — ${bmiLabel}<br>🔥 <strong>每日卡路里目标：</strong>~${p.tdee} 千卡/天<br>前往<strong>仪表板</strong>标签页！💪`,
+    nameErr: '请输入有效名字（至少2个字符）。',
+    ageErr: '请输入10到100之间的有效年龄。',
+    weightErr: '请输入20–300公斤之间的有效体重。',
+    heightErr: '请输入50–250厘米之间的有效身高。',
+    durationErr: '请输入10到300分钟之间的时长。',
+    reminderMsgs: (n,g) => [`${n}，保持水分！💧`, `你离好心情只差一次锻炼，${n}！🔥`, `目标：${g||'保持健康'}。继续加油！🏆`, `休息也是计划的一部分！💪`],
+    reminderTitle: 'FitX 提醒',
+    profileCompleteToast: (n) => `欢迎，${n}！您的仪表板已准备就绪。`,
+    profileCompleteToastTitle: '档案完成！',
+  },
+  ja: {
+    chat: 'チャット', dashboard: 'ダッシュボード', premium: 'プレミアム',
+    typeMessage: 'メッセージを入力…',
+    greeting: `こんにちは、チャンピオン！💪 私はあなたの<strong>FitX コーチ</strong>です。<br><br>あなたのプランを作りましょう！まず、あなたの<strong>お名前</strong>は？`,
+    age: (p) => `はじめまして、<strong>${p.name}</strong>さん！🔥<br>年齢は？<small style="color:var(--text-sub)">(10–100)</small>`,
+    gender: '<strong>性別</strong>は？',
+    weight: '現在の<strong>体重（kg）</strong>？<small style="color:var(--text-sub)">(例: 70)</small>',
+    height: '<strong>身長（cm）</strong>は？<small style="color:var(--text-sub)">(例: 175)</small>',
+    diet: '<strong>食事の好み</strong>は？',
+    activity: '毎日の<strong>活動レベル</strong>は？',
+    workoutType: 'お好みの<strong>トレーニング種類</strong>は？',
+    workoutTime: 'いつ<strong>トレーニング</strong>しますか？',
+    duration: '1回の<strong>セッションの時間（分）</strong>？<small style="color:var(--text-sub)">(10–300分)</small>',
+    goal: '<strong>主なフィットネス目標</strong>は？',
+    photo: 'もうすぐです！<strong>進捗写真</strong>をアップロードしますか？（任意）',
+    genderOpts: ['男性','女性','ノンバイナリー','答えたくない'],
+    dietOpts: ['ベジタリアン 🥦','ヴィーガン 🌱','非ベジタリアン 🍗','オボベジタリアン 🥚','特になし 🍽️'],
+    activityOpts: ['座りがち 🪑','少し活動的 🚶','中程度に活動的 🏃','非常に活動的 ⚡','超活動的 🔥'],
+    workoutTypeOpts: ['自宅トレーニング 🏠','ジム 🏋️','カーディオ 🏃‍♂️','筋トレ 💪','ヨガ 🧘','複合 🔀'],
+    workoutTimeOpts: ['早朝 🌅','朝 ☀️','昼 🌤️','夕方 🌆','夜 🌙'],
+    goalOpts: ['体重を減らす ⬇️','筋肉をつける 💪','持久力を向上させる 🏅','健康を維持する 🌿','柔軟性を高める 🤸'],
+    skipPhoto: 'スキップ →', uploadPhoto: '写真をアップロード',
+    profileComplete: (p,bmi,bmiLabel) => `🎉 <strong>プロフィール完成、${p.name}さん！</strong><br><br>📊 <strong>BMI：</strong>${bmi} — ${bmiLabel}<br>🔥 <strong>1日のカロリー目標：</strong>~${p.tdee} kcal/日<br><strong>ダッシュボード</strong>タブへ移動！💪`,
+    nameErr: '有効な名前を入力してください（2文字以上）。',
+    ageErr: '10〜100の有効な年齢を入力してください。',
+    weightErr: '20〜300kgの有効な体重を入力してください。',
+    heightErr: '50〜250cmの有効な身長を入力してください。',
+    durationErr: '10〜300分の間で時間を入力してください。',
+    reminderMsgs: (n,g) => [`${n}さん、水分を補給してください！💧`, `${n}さん、1回のトレーニングで気分が上がります！🔥`, `目標：${g||'健康を維持する'}。頑張りましょう！🏆`, `休息もプランの一部です！💪`],
+    reminderTitle: 'FitX リマインダー',
+    profileCompleteToast: (n) => `ようこそ、${n}さん！ダッシュボードの準備ができました。`,
+    profileCompleteToastTitle: 'プロフィール完成！',
+  }
+};
+
+let currentLang = 'en';
+function t(key, ...args) {
+  const lang = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+  const val = lang[key] !== undefined ? lang[key] : (TRANSLATIONS.en[key] || key);
+  return typeof val === 'function' ? val(...args) : val;
+}
+
+function setLanguage(lang) {
+  currentLang = lang;
+  // Update static UI elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    el.textContent = t(key);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    el.placeholder = t(key);
+  });
+  // Rebuild FLOW with new language
+  rebuildFlow();
+  toast('🌐', 'Language Changed', `Interface updated!`, 2500);
+}
+
+function rebuildFlow() {
+  FLOW.greeting.text = t('greeting');
+  FLOW.age.text = (p) => t('age', p);
+  FLOW.gender.text = t('gender');
+  FLOW.gender.options = t('genderOpts');
+  FLOW.weight.text = t('weight');
+  FLOW.height.text = t('height');
+  FLOW.diet.text = t('diet');
+  FLOW.diet.options = t('dietOpts');
+  FLOW.activity.text = t('activity');
+  FLOW.activity.options = t('activityOpts');
+  FLOW.workoutType.text = t('workoutType');
+  FLOW.workoutType.options = t('workoutTypeOpts');
+  FLOW.workoutTime.text = t('workoutTime');
+  FLOW.workoutTime.options = t('workoutTimeOpts');
+  FLOW.duration.text = t('duration');
+  FLOW.goal.text = t('goal');
+  FLOW.goal.options = t('goalOpts');
+  FLOW.photo.text = t('photo');
+
+  FLOW.greeting.validate = v => v.trim().length >= 2 ? null : t('nameErr');
+  FLOW.age.validate = v => { const n=+v; return !isNaN(n)&&n>=10&&n<=100?null:t('ageErr'); };
+  FLOW.weight.validate = v => { const n=+v; return !isNaN(n)&&n>=20&&n<=300?null:t('weightErr'); };
+  FLOW.height.validate = v => { const n=+v; return !isNaN(n)&&n>=50&&n<=250?null:t('heightErr'); };
+  FLOW.duration.validate = v => { const n=+v; return !isNaN(n)&&n>=10&&n<=300?null:t('durationErr'); };
+}
+
+setInterval(() => {
+  if (S.profile.name && S.step==='free') {
+    const m = [
+      `${S.profile.name}, stay hydrated! 💧 8 glasses today!`,
+      `You're one workout away from a better mood, ${S.profile.name}! 🔥`,
+      `Goal: ${S.profile.goal||'stay fit'}. Keep going! 🏆`,
+      `Rest is part of the plan — your muscles grow during recovery! 💪`
+    ];
+    toast('💡','FitX Reminder', m[Math.floor(Math.random()*m.length)], 5000);
+  }
+}, 5*60*1000);
+</script>
+</body>
+</html>

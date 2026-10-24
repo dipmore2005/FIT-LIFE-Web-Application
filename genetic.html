@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeneForm — Genetic Fitness Profiling</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FAF7F2;
+    --paper: #F2EDE4;
+    --warm-gray: #8C8276;
+    --dark: #1A1612;
+    --accent: #C8502A;
+    --accent-light: #E8A088;
+    --green: #3A6B4A;
+    --green-light: #A8C9B0;
+    --gold: #B8882A;
+    --gold-light: #E8D09A;
+    --blue: #2A4A7A;
+    --blue-light: #A0B8D8;
+    --border: #D8D0C4;
+    --shadow: rgba(26,22,18,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--cream);
+    color: var(--dark);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    padding: 28px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1.5px solid var(--border);
+    background: var(--cream);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+    color: var(--dark);
+  }
+  .logo span { color: var(--accent); }
+
+  .header-tag {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--warm-gray);
+  }
+
+  /* HERO */
+  .hero {
+    padding: 80px 48px 60px;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .hero-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 56px;
+    line-height: 1.05;
+    color: var(--dark);
+    margin-bottom: 20px;
+  }
+  .hero-title em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero-subtitle {
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--warm-gray);
+    margin-bottom: 36px;
+    max-width: 400px;
+  }
+
+  /* UPLOAD ZONE */
+  .upload-card {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 8px 40px var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .upload-card::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, var(--gold-light) 0%, transparent 70%);
+    opacity: 0.5;
+  }
+
+  .upload-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--warm-gray);
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 14px;
+    padding: 40px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--cream);
+    position: relative;
+  }
+
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--accent);
+    background: rgba(200,80,42,0.04);
+  }
+
+  .drop-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .drop-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--dark);
+    margin-bottom: 6px;
+  }
+
+  .drop-sub {
+    font-size: 11px;
+    color: var(--warm-gray);
+  }
+
+  #fileInput { display: none; }
+
+  .file-formats {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  .format-tag {
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--warm-gray);
+  }
+
+  .analyze-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 16px;
+    background: var(--dark);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: none;
+  }
+
+  .analyze-btn:hover {
+    background: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(200,80,42,0.3);
+  }
+
+  .file-loaded {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--green-light);
+    border-radius: 10px;
+    margin-top: 16px;
+    display: none;
+  }
+
+  .file-loaded span { font-size: 12px; color: var(--green); font-weight: 500; }
+
+  /* LOADING */
+  #loadingSection {
+    display: none;
+    padding: 80px 48px;
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .dna-spinner {
+    font-size: 48px;
+    animation: dnaRotate 2s linear infinite;
+    display: block;
+    margin: 0 auto 24px;
+  }
+
+  @keyframes dnaRotate {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.1); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+
+  .loading-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+
+  .loading-steps {
+    list-style: none;
+    margin-top: 32px;
+    text-align: left;
+    display: inline-block;
+  }
+
+  .loading-steps li {
+    font-size: 12px;
+    padding: 8px 0;
+    color: var(--warm-gray);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .step-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+    transition: background 0.5s ease;
+  }
+  .step-dot.active { background: var(--accent); }
+  .step-dot.done { background: var(--green); }
+
+  /* RESULTS */
+  #resultsSection {
+    display: none;
+    padding: 40px 48px 80px;
+    max-width: 1100px;
+    margin: 0 auto;
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .results-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    padding-bottom: 32px;
+    border-bottom: 1.5px solid var(--border);
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .profile-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 42px;
+    margin-bottom: 6px;
+  }
+
+  .profile-id {
+    font-size: 11px;
+    color: var(--warm-gray);
+    letter-spacing: 1.5px;
+  }
+
+  .reset-btn {
+    padding: 10px 20px;
+    border: 1.5px solid var(--border);
+    background: white;
+    border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--dark);
+  }
+  .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* GENETIC OVERVIEW */
+  .gene-overview {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .gene-card {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+  .gene-card:hover { transform: translateY(-2px); }
+
+  .gene-card-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--warm-gray);
+    margin-bottom: 12px;
+  }
+
+  .gene-card-value {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    margin-bottom: 4px;
+    color: var(--dark);
+  }
+
+  .gene-card-sub {
+    font-size: 11px;
+    color: var(--warm-gray);
+  }
+
+  .gene-card-bar {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--paper);
+    margin-top: 14px;
+    overflow: hidden;
+  }
+
+  .gene-card-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease;
+  }
+
+  .card-accent-red .gene-card-bar-fill { background: var(--accent); }
+  .card-accent-green .gene-card-bar-fill { background: var(--green); }
+  .card-accent-gold .gene-card-bar-fill { background: var(--gold); }
+  .card-accent-blue .gene-card-bar-fill { background: var(--blue); }
+
+  /* SECTIONS */
+  .section-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .panel {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: 0 4px 20px var(--shadow);
+  }
+
+  .panel-full { grid-column: 1 / -1; }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .panel-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  .panel-sub {
+    font-size: 11px;
+    color: var(--warm-gray);
+    margin-top: 2px;
+  }
+
+  /* TRAIT ROWS */
+  .trait-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--paper);
+  }
+  .trait-row:last-child { border-bottom: none; }
+
+  .trait-name { font-size: 12px; color: var(--dark); }
+
+  .trait-badge {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-high { background: #FEE8E0; color: var(--accent); }
+  .badge-med { background: var(--gold-light); color: var(--gold); }
+  .badge-low { background: var(--green-light); color: var(--green); }
+  .badge-optimal { background: #E0EEE4; color: var(--green); }
+  .badge-elevated { background: #FEE8E0; color: var(--accent); }
+  .badge-moderate { background: var(--gold-light); color: var(--gold); }
+
+  /* WORKOUT SCHEDULE */
+  .workout-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .day-block {
+    text-align: center;
+    padding: 12px 6px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+  }
+
+  .day-label {
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--warm-gray);
+    margin-bottom: 8px;
+  }
+
+  .day-type {
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .day-rest { background: var(--paper); }
+  .day-strength { background: #E0EEE4; border-color: var(--green-light); }
+  .day-cardio { background: rgba(200,80,42,0.06); border-color: var(--accent-light); }
+  .day-hiit { background: var(--gold-light); border-color: #D4A84A; }
+  .day-flex { background: var(--blue-light); border-color: var(--blue); opacity: 0.7; }
+
+  /* NUTRITION */
+  .macro-chart {
+    display: flex;
+    gap: 0;
+    height: 16px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+
+  .macro-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: white;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: width 1s ease;
+  }
+
+  .macro-legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .macro-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .macro-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .macro-pct { font-weight: 600; }
+
+  /* FOOD LIST */
+  .food-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 4px;
+  }
+
+  .food-category {
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .food-cat-title {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+
+  .food-cat-title.green { color: var(--green); }
+  .food-cat-title.red { color: var(--accent); }
+
+  .food-list { list-style: none; }
+  .food-list li {
+    font-size: 12px;
+    padding: 4px 0;
+    color: var(--dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .food-list li::before { content: '—'; color: var(--warm-gray); font-size: 10px; }
+
+  /* INJURY RISK */
+  .risk-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--paper);
+  }
+  .risk-row:last-child { border-bottom: none; }
+
+  .risk-icon { font-size: 22px; }
+
+  .risk-info { flex: 1; }
+  .risk-name { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+  .risk-desc { font-size: 11px; color: var(--warm-gray); }
+
+  .risk-meter {
+    width: 80px;
+    height: 6px;
+    background: var(--paper);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .risk-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s ease;
+  }
+
+  .risk-low .risk-fill { background: var(--green); }
+  .risk-med .risk-fill { background: var(--gold); }
+  .risk-high .risk-fill { background: var(--accent); }
+
+  /* GENETIC MARKERS */
+  .marker-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+
+  .marker-chip {
+    padding: 14px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: var(--paper);
+  }
+
+  .marker-gene {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .marker-effect {
+    font-size: 11px;
+    color: var(--dark);
+    margin-bottom: 2px;
+  }
+
+  .marker-allele {
+    font-size: 10px;
+    color: var(--warm-gray);
+  }
+
+  /* SUPPLEMENT TABLE */
+  .supp-list { list-style: none; }
+  .supp-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--paper);
+  }
+  .supp-row:last-child { border-bottom: none; }
+
+  .supp-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .supp-name { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+  .supp-why { font-size: 11px; color: var(--warm-gray); }
+  .supp-dose {
+    margin-left: auto;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--accent);
+    white-space: nowrap;
+    padding-top: 2px;
+  }
+
+  /* UPLOAD section */
+  #uploadSection { animation: fadeUp 0.5s ease; }
+
+  .stats-row {
+    display: flex;
+    gap: 24px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stat-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: var(--dark);
+  }
+
+  .stat-lbl {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--warm-gray);
+  }
+
+  /* SCORE RING */
+  .score-ring-wrap {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: var(--paper);
+    border-radius: 16px;
+    margin-top: 20px;
+  }
+
+  .score-svg { flex-shrink: 0; }
+
+  .score-text-wrap { }
+  .score-big {
+    font-family: 'DM Serif Display', serif;
+    font-size: 48px;
+    line-height: 1;
+    color: var(--dark);
+  }
+  .score-label {
+    font-size: 11px;
+    color: var(--warm-gray);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .score-grade {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--green);
+  }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; gap: 40px; padding: 40px 24px; }
+    .hero-title { font-size: 38px; }
+    .gene-overview { grid-template-columns: 1fr 1fr; }
+    .section-grid { grid-template-columns: 1fr; }
+    .marker-grid { grid-template-columns: 1fr 1fr; }
+    .workout-grid { grid-template-columns: repeat(4, 1fr); }
+    header { padding: 20px 24px; }
+    #resultsSection { padding: 24px 24px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Gene<span>Form</span></div>
+  <span class="header-tag">Genetic Fitness Profiling · v2.4</span>
+</header>
+
+<!-- UPLOAD SECTION -->
+<div id="uploadSection">
+  <div class="hero">
+    <div class="hero-text">
+      <h1 class="hero-title">Your DNA,<br>your <em>perfect</em><br>fitness plan.</h1>
+      <p class="hero-subtitle">Upload your raw DNA test results and receive a precision fitness and nutrition protocol engineered for your unique genetic blueprint — metabolism, recovery, injury risk, and more.</p>
+      <div class="stats-row">
+        <div class="stat-item">
+          <span class="stat-num">47</span>
+          <span class="stat-lbl">Gene Markers</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">12</span>
+          <span class="stat-lbl">Trait Clusters</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">100%</span>
+          <span class="stat-lbl">Offline & Private</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="upload-card">
+      <span class="upload-label">Upload DNA Results</span>
+
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <span class="drop-icon">🧬</span>
+        <div class="drop-text">Drop your DNA file here</div>
+        <div class="drop-sub">or click to browse files</div>
+      </div>
+
+      <input type="file" id="fileInput" accept=".txt,.csv,.json,.vcf,.zip,.23andme,.ancestry">
+
+      <div class="file-formats">
+        <span class="format-tag">.txt</span>
+        <span class="format-tag">.csv</span>
+        <span class="format-tag">.vcf</span>
+        <span class="format-tag">.json</span>
+        <span class="format-tag">23andMe</span>
+        <span class="format-tag">AncestryDNA</span>
+      </div>
+
+      <div class="file-loaded" id="fileLoaded">
+        <span>✓</span>
+        <span id="fileLoadedName">File ready</span>
+      </div>
+
+      <button class="analyze-btn" id="analyzeBtn" onclick="startAnalysis()">
+        Analyze My DNA →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING SECTION -->
+<div id="loadingSection">
+  <span class="dna-spinner">🧬</span>
+  <h2 class="loading-title">Decoding your genome…</h2>
+  <p style="font-size:12px;color:var(--warm-gray)">Analyzing genetic markers for personalized recommendations</p>
+
+  <ul class="loading-steps">
+    <li><span class="step-dot" id="step1"></span>Parsing raw SNP data</li>
+    <li><span class="step-dot" id="step2"></span>Identifying metabolic markers</li>
+    <li><span class="step-dot" id="step3"></span>Cross-referencing sport performance genes</li>
+    <li><span class="step-dot" id="step4"></span>Calculating injury predispositions</li>
+    <li><span class="step-dot" id="step5"></span>Building nutrition profile</li>
+    <li><span class="step-dot" id="step6"></span>Generating personalized plan</li>
+  </ul>
+</div>
+
+<!-- RESULTS SECTION -->
+<div id="resultsSection">
+  <div class="results-header">
+    <div>
+      <h2 class="profile-name" id="profileName">Profile</h2>
+      <span class="profile-id" id="profileId">DNA-ID: —</span>
+    </div>
+    <button class="reset-btn" onclick="resetApp()">← Analyze New File</button>
+  </div>
+
+  <!-- GENE OVERVIEW CARDS -->
+  <div class="gene-overview" id="geneOverview"></div>
+
+  <!-- SECTION GRID -->
+  <div class="section-grid">
+
+    <!-- FITNESS TRAITS -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-icon" style="background:#E0EEE4">💪</div>
+        <div>
+          <div class="panel-title">Performance Traits</div>
+          <div class="panel-sub">Genetic athletic aptitudes</div>
+        </div>
+      </div>
+      <div id="traitsList"></div>
+    </div>
+
+    <!-- WORKOUT PLAN -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-icon" style="background:var(--gold-light)">📅</div>
+        <div>
+          <div class="panel-title">Weekly Training Plan</div>
+          <div class="panel-sub">Optimized for your genes</div>
+        </div>
+      </div>
+      <div class="workout-grid" id="workoutGrid"></div>
+      <div style="margin-top:16px;font-size:11px;color:var(--warm-gray);line-height:1.7" id="workoutNote"></div>
+    </div>
+
+    <!-- INJURY RISK -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-icon" style="background:#FEE8E0">⚠️</div>
+        <div>
+          <div class="panel-title">Injury Risk Profile</div>
+          <div class="panel-sub">Areas requiring attention</div>
+        </div>
+      </div>
+      <div id="injuryList"></div>
+    </div>
+
+    <!-- GENETIC SCORE -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-icon" style="background:var(--blue-light)">⭐</div>
+        <div>
+          <div class="panel-title">Genetic Fitness Score</div>
+          <div class="panel-sub">Overall athletic potential</div>
+        </div>
+      </div>
+      <div class="score-ring-wrap">
+        <svg class="score-svg" width="90" height="90" viewBox="0 0 90 90" id="scoreRing">
+          <circle cx="45" cy="45" r="38" fill="none" stroke="var(--paper)" stroke-width="8"/>
+          <circle cx="45" cy="45" r="38" fill="none" stroke="var(--green)" stroke-width="8"
+            stroke-dasharray="238.76" stroke-dashoffset="238.76" stroke-linecap="round"
+            transform="rotate(-90 45 45)" id="scoreArc" style="transition:stroke-dashoffset 1.5s ease"/>
+        </svg>
+        <div class="score-text-wrap">
+          <div class="score-label">Overall Score</div>
+          <div class="score-big" id="scoreBig">—</div>
+          <div class="score-grade" id="scoreGrade">—</div>
+        </div>
+      </div>
+      <div style="margin-top:16px;font-size:11px;color:var(--warm-gray);line-height:1.7" id="scoreNote"></div>
+    </div>
+
+    <!-- GENETIC MARKERS -->
+    <div class="panel panel-full">
+      <div class="panel-header">
+        <div class="panel-icon" style="background:var(--paper)">🔬</div>
+        <div>
+          <div class="panel-title">Key Genetic Markers Detected</div>
+          <div class="panel-sub">SNP analysis summary</div>
+        </div>
+      </div>
+      <div class="marker-grid" id="markerGrid"></div>
+    </div>
+
+    <!-- NUTRITION -->
+    <div class="panel panel-full">
+      <div class="panel-header">
+        <div class="panel-icon" style="background:#E0EEE4">🥗</div>
+        <div>
+          <div class="panel-title">Genetically-Optimized Nutrition</div>
+          <div class="panel-sub">Macros & food recommendations based on your metabolism type</div>
+        </div>
+      </div>
+      <div style="margin-bottom:8px;font-size:11px;color:var(--warm-gray)" id="metabNote"></div>
+      <div class="macro-chart" id="macroChart"></div>
+      <div class="macro-legend" id="macroLegend"></div>
+      <div class="food-grid" style="margin-top:24px" id="foodGrid"></div>
+    </div>
+
+    <!-- SUPPLEMENTS -->
+    <div class="panel panel-full">
+      <div class="panel-header">
+        <div class="panel-icon" style="background:var(--gold-light)">💊</div>
+        <div>
+          <div class="panel-title">Recommended Supplements</div>
+          <div class="panel-sub">Based on detected genetic variants</div>
+        </div>
+      </div>
+      <ul class="supp-list" id="suppList"></ul>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── PROFILES DATABASE ────────────────────────────────────────────────────────
+const PROFILES = {
+  "endurance_athlete": {
+    name: "Endurance Athlete Profile",
+    id: "DNA-EA-7821",
+    score: 84,
+    grade: "Elite Endurance",
+    scoreNote: "Your genetic profile is strongly skewed toward aerobic efficiency. VO2max potential is in the top 18th percentile based on PPARGC1A and VEGF variants.",
+    overview: [
+      { label: "Metabolism Type", value: "Fat Burner", sub: "Efficient lipid oxidation", pct: 82, color: "card-accent-green" },
+      { label: "Muscle Fiber", value: "Type I (78%)", sub: "Slow-twitch dominant", pct: 78, color: "card-accent-blue" },
+      { label: "Recovery Rate", value: "Moderate", sub: "72–96 hrs optimal", pct: 55, color: "card-accent-gold" },
+      { label: "VO2 Max Potential", value: "Very High", sub: "Genetic ceiling: elite", pct: 88, color: "card-accent-red" }
+    ],
+    traits: [
+      { name: "Aerobic Capacity", badge: "badge-high", label: "High" },
+      { name: "Lactate Threshold", badge: "badge-high", label: "High" },
+      { name: "Muscular Endurance", badge: "badge-high", label: "High" },
+      { name: "Explosive Power", badge: "badge-low", label: "Low" },
+      { name: "Muscle Mass Gain", badge: "badge-low", label: "Low" },
+      { name: "Heat Tolerance", badge: "badge-med", label: "Moderate" },
+      { name: "Altitude Adaptation", badge: "badge-high", label: "High" }
+    ],
+    workout: [
+      { day: "Mon", type: "Strength", cls: "day-strength" },
+      { day: "Tue", type: "Long Run", cls: "day-cardio" },
+      { day: "Wed", type: "Tempo Run", cls: "day-cardio" },
+      { day: "Thu", type: "Rest", cls: "day-rest" },
+      { day: "Fri", type: "Zone 2 Ride", cls: "day-cardio" },
+      { day: "Sat", type: "HIIT", cls: "day-hiit" },
+      { day: "Sun", type: "Recovery", cls: "day-rest" }
+    ],
+    workoutNote: "Your ACTN3 RR genotype means aerobic training produces outsized gains. Prioritize 70–80% Zone 2 work. Add one heavy compound strength session to counter muscle loss from endurance volume.",
+    injuries: [
+      { icon: "🦵", name: "IT Band Syndrome", desc: "COL5A1 variant increases ligament laxity", risk: "high", pct: 72 },
+      { icon: "🦴", name: "Stress Fractures", desc: "Moderate bone density markers detected", risk: "med", pct: 50 },
+      { icon: "❤️", name: "Overtraining Risk", desc: "IL-6 inflammatory marker — monitor HRV", risk: "med", pct: 48 },
+      { icon: "🦷", name: "Tendon Strain", desc: "Low tendon stiffness variant", risk: "low", pct: 28 }
+    ],
+    markers: [
+      { gene: "ACTN3", effect: "Endurance optimized", allele: "XX genotype" },
+      { gene: "PPARGC1A", effect: "Mitochondrial biogenesis", allele: "Gly/Gly" },
+      { gene: "VEGF", effect: "High angiogenesis", allele: "936C>T" },
+      { gene: "ACE", effect: "Endurance ACE-I allele", allele: "Insertion" },
+      { gene: "COL5A1", effect: "Ligament laxity risk", allele: "CC/CT" },
+      { gene: "AMPD1", effect: "Efficient adenosine", allele: "Wild type" }
+    ],
+    metabNote: "Your PPAR-γ and FTO variants indicate superior fat oxidation at low-to-moderate intensity. You are a fat-adapted athlete — carb loading should be strategic, not default.",
+    macros: [
+      { label: "Carbs", pct: 40, color: "#C8502A" },
+      { label: "Fat", pct: 35, color: "#B8882A" },
+      { label: "Protein", pct: 25, color: "#3A6B4A" }
+    ],
+    foods: {
+      good: ["Oats, quinoa, sweet potato", "Salmon, sardines, mackerel", "Avocado, olive oil, nuts", "Leafy greens, beets, spinach", "Bone broth, collagen sources"],
+      avoid: ["Simple sugars pre-race", "Excessive dairy (inflammation)", "Fried and processed oils", "High-fructose corn syrup"]
+    },
+    supps: [
+      { icon: "🫐", name: "Beta-Alanine", why: "Buffers lactate — aligns with your threshold training needs", dose: "3.2g/day" },
+      { icon: "🧡", name: "Iron + Vitamin C", why: "Endurance athletes deplete iron; COL5A1 needs cofactors", dose: "18mg iron" },
+      { icon: "🌊", name: "Omega-3 (EPA/DHA)", why: "IL-6 anti-inflammatory; protects tendons and joints", dose: "2g/day" },
+      { icon: "⚡", name: "Magnesium Glycinate", why: "Electrolyte loss + improved sleep quality for recovery", dose: "400mg PM" },
+      { icon: "🍃", name: "Rhodiola Rosea", why: "Adaptogen matching your oxidative stress profile", dose: "500mg AM" }
+    ]
+  },
+
+  "power_lifter": {
+    name: "Power & Strength Profile",
+    id: "DNA-PS-3147",
+    score: 91,
+    grade: "Exceptional Power",
+    scoreNote: "Remarkable genetic profile for strength sports. ACTN3 RX+ and high myostatin inhibitor variants place you in the top 6% for anaerobic power potential.",
+    overview: [
+      { label: "Metabolism Type", value: "Anabolic", sub: "High protein synthesis", pct: 91, color: "card-accent-red" },
+      { label: "Muscle Fiber", value: "Type II (82%)", sub: "Fast-twitch dominant", pct: 82, color: "card-accent-green" },
+      { label: "Recovery Rate", value: "Fast", sub: "48–60 hrs optimal", pct: 80, color: "card-accent-blue" },
+      { label: "Strength Potential", value: "Elite", sub: "Top 6% genetically", pct: 96, color: "card-accent-gold" }
+    ],
+    traits: [
+      { name: "Explosive Power", badge: "badge-high", label: "Very High" },
+      { name: "Muscle Mass Gain", badge: "badge-high", label: "Very High" },
+      { name: "Strength Gain Rate", badge: "badge-high", label: "Very High" },
+      { name: "Aerobic Capacity", badge: "badge-low", label: "Low" },
+      { name: "Endurance", badge: "badge-low", label: "Low" },
+      { name: "Hypertrophy Response", badge: "badge-high", label: "High" },
+      { name: "Bone Density", badge: "badge-high", label: "High" }
+    ],
+    workout: [
+      { day: "Mon", type: "Upper Power", cls: "day-strength" },
+      { day: "Tue", type: "Lower Power", cls: "day-strength" },
+      { day: "Wed", type: "Active Rest", cls: "day-rest" },
+      { day: "Thu", type: "Upper Hyper", cls: "day-strength" },
+      { day: "Fri", type: "Lower Hyper", cls: "day-strength" },
+      { day: "Sat", type: "HIIT", cls: "day-hiit" },
+      { day: "Sun", type: "Full Rest", cls: "day-rest" }
+    ],
+    workoutNote: "4-day power split recommended. Use conjugate periodization — alternating max effort and dynamic effort days. Your fast-twitch dominance means low rep ranges (1–5) activate maximum genetic potential. Avoid chronic cardio — it suppresses mTOR signaling.",
+    injuries: [
+      { icon: "🦴", name: "Lower Back Strain", desc: "High force generation increases spinal load", risk: "high", pct: 68 },
+      { icon: "🦷", name: "Tendinopathy", desc: "COL1A1 variant — rapid strength gains stress tendons", risk: "high", pct: 65 },
+      { icon: "🦵", name: "Knee Meniscus", desc: "High body mass + explosive load", risk: "med", pct: 45 },
+      { icon: "💪", name: "Rotator Cuff", desc: "Shoulder stabilizer genetics — moderate risk", risk: "low", pct: 30 }
+    ],
+    markers: [
+      { gene: "ACTN3", effect: "Power-type fast twitch", allele: "RX genotype" },
+      { gene: "MSTN", effect: "Myostatin inhibited", allele: "GDF8 variant" },
+      { gene: "IGF1", effect: "High growth factor", allele: "CA repeat 19" },
+      { gene: "COL1A1", effect: "Tendon stiffness risk", allele: "Sp1 TT" },
+      { gene: "AR", effect: "Androgen sensitivity", allele: "Short CAG" },
+      { gene: "AMPD1", effect: "ATP regeneration fast", allele: "Gln/Gln" }
+    ],
+    metabNote: "Your MTOR pathway variants show exceptional sensitivity to dietary protein. You are a natural anabolic responder — protein synthesis is genetically elevated. Timing and quality of protein are critical.",
+    macros: [
+      { label: "Carbs", pct: 35, color: "#C8502A" },
+      { label: "Fat", pct: 25, color: "#B8882A" },
+      { label: "Protein", pct: 40, color: "#3A6B4A" }
+    ],
+    foods: {
+      good: ["Red meat, eggs, poultry, fish", "White rice, potatoes (peri-workout)", "Full-fat dairy (if tolerant)", "Creatine-rich foods: herring, beef", "Broccoli, kale (estrogen balance)"],
+      avoid: ["Phytoestrogens (excess soy)", "Highly processed carbs", "Alcohol (disrupts mTOR)", "Low-protein diets under 1.8g/kg"]
+    },
+    supps: [
+      { icon: "⚡", name: "Creatine Monohydrate", why: "Your AMPD1 genotype makes creatine exceptionally effective", dose: "5g/day" },
+      { icon: "🥩", name: "Whey Protein Isolate", why: "Leucine-rich trigger for your mTOR pathway variants", dose: "30–50g PWO" },
+      { icon: "🌿", name: "Zinc + Magnesium", why: "Supports testosterone pathway and COL1A1 tendon repair", dose: "ZMA formula" },
+      { icon: "🧴", name: "Vitamin D3 + K2", why: "Bone density optimization for your loading patterns", dose: "4000 IU D3" },
+      { icon: "🍊", name: "Vitamin C (buffered)", why: "Collagen synthesis — critical for your COL1A1 tendon risk", dose: "1g/day" }
+    ]
+  },
+
+  "metabolic_syndrome": {
+    name: "Metabolic Risk Profile",
+    id: "DNA-MR-5509",
+    score: 62,
+    grade: "Guided Approach",
+    scoreNote: "Several metabolic risk markers detected. Your profile benefits enormously from targeted lifestyle interventions — genetics are not destiny, and your risk factors are highly modifiable.",
+    overview: [
+      { label: "Metabolism Type", value: "Carb Sensitive", sub: "Low insulin sensitivity", pct: 35, color: "card-accent-red" },
+      { label: "Muscle Fiber", value: "Mixed (52/48)", sub: "Balanced fiber type", pct: 52, color: "card-accent-gold" },
+      { label: "Recovery Rate", value: "Slow", sub: "96–120 hrs optimal", pct: 35, color: "card-accent-blue" },
+      { label: "Inflammation", value: "Elevated", sub: "IL-6 high allele", pct: 70, color: "card-accent-red" }
+    ],
+    traits: [
+      { name: "Insulin Sensitivity", badge: "badge-high", label: "Low Risk" },
+      { name: "Inflammation Response", badge: "badge-elevated", label: "Elevated" },
+      { name: "Fat Storage Tendency", badge: "badge-high", label: "High" },
+      { name: "Cardiovascular Risk", badge: "badge-mod", label: "Moderate" },
+      { name: "Glucose Metabolism", badge: "badge-elevated", label: "Impaired" },
+      { name: "Response to Exercise", badge: "badge-high", label: "High Benefit" },
+      { name: "Dietary Fat Sensitivity", badge: "badge-med", label: "Moderate" }
+    ],
+    workout: [
+      { day: "Mon", type: "Strength", cls: "day-strength" },
+      { day: "Tue", type: "Walk 45m", cls: "day-cardio" },
+      { day: "Wed", type: "Strength", cls: "day-strength" },
+      { day: "Thu", type: "Yoga/Stretch", cls: "day-flex" },
+      { day: "Fri", type: "Strength", cls: "day-strength" },
+      { day: "Sat", type: "Zone 2 Walk", cls: "day-cardio" },
+      { day: "Sun", type: "Rest", cls: "day-rest" }
+    ],
+    workoutNote: "Resistance training is your highest-leverage tool — muscle mass is the primary glucose sink and dramatically improves your insulin sensitivity genotype. 3x/week progressive overload. Avoid excessive fasted cardio which elevates cortisol — already a risk with your IL-6 profile.",
+    injuries: [
+      { icon: "❤️", name: "Cardiovascular Strain", desc: "APOE + LPA variants — monitor during high intensity", risk: "high", pct: 75 },
+      { icon: "🦵", name: "Joint Inflammation", desc: "IL-6 + TNF-α variants create systemic inflammation", risk: "high", pct: 70 },
+      { icon: "🧠", name: "Metabolic Fatigue", desc: "Glucose dysregulation affects energy availability", risk: "med", pct: 55 },
+      { icon: "🦴", name: "Bone Density Loss", desc: "VDR variant — ensure adequate Vitamin D", risk: "low", pct: 30 }
+    ],
+    markers: [
+      { gene: "FTO", effect: "Obesity risk allele", allele: "AA genotype" },
+      { gene: "TCF7L2", effect: "T2D risk elevated", allele: "TT allele" },
+      { gene: "APOE", effect: "LDL cholesterol high", allele: "ε3/ε4" },
+      { gene: "IL-6", effect: "High inflammation", allele: "174 G>C" },
+      { gene: "VDR", effect: "Vitamin D absorption", allele: "Bsm1 bb" },
+      { gene: "PPARG", effect: "Insulin signaling", allele: "Pro12Ala" }
+    ],
+    metabNote: "FTO and TCF7L2 variants create significant carbohydrate sensitivity. Refined carbohydrates cause excessive blood glucose spikes. Your profile thrives on low-glycemic, high-fiber foods with strategic protein timing.",
+    macros: [
+      { label: "Carbs", pct: 25, color: "#C8502A" },
+      { label: "Fat", pct: 40, color: "#B8882A" },
+      { label: "Protein", pct: 35, color: "#3A6B4A" }
+    ],
+    foods: {
+      good: ["Non-starchy vegetables (unlimited)", "Legumes (slow-digesting carbs)", "Fatty fish (salmon, mackerel)", "Olive oil, walnuts, flaxseeds", "Cinnamon, berberine foods"],
+      avoid: ["White bread, white rice, sugar", "Fruit juices and dried fruit", "Refined breakfast cereals", "Alcohol (worsens insulin resistance)", "Trans fats, fast food"]
+    },
+    supps: [
+      { icon: "🍃", name: "Berberine", why: "Clinically matches your TCF7L2 risk — activates AMPK pathway", dose: "500mg 3x/day" },
+      { icon: "🐟", name: "Omega-3 (high EPA)", why: "Counters IL-6 inflammation; reduces cardiovascular risk", dose: "3g/day" },
+      { icon: "☀️", name: "Vitamin D3 + K2", why: "Your VDR variant creates severe deficiency risk", dose: "5000 IU D3" },
+      { icon: "🌿", name: "Magnesium Citrate", why: "Critical for insulin signaling — most metabolic profiles are deficient", dose: "400mg" },
+      { icon: "🫐", name: "Alpha-Lipoic Acid", why: "Improves glucose uptake and APOE-related oxidative stress", dose: "600mg" }
+    ]
+  },
+
+  "balanced_athlete": {
+    name: "Balanced Athlete Profile",
+    id: "DNA-BA-2234",
+    score: 77,
+    grade: "Well-Rounded",
+    scoreNote: "Your genetic profile shows excellent balance across multiple athletic domains. You are a classic all-rounder — responsive to varied training modalities and nutritional approaches.",
+    overview: [
+      { label: "Metabolism Type", value: "Mixed", sub: "Flexible energy use", pct: 68, color: "card-accent-green" },
+      { label: "Muscle Fiber", value: "Balanced (50/50)", sub: "Equal fast/slow twitch", pct: 60, color: "card-accent-blue" },
+      { label: "Recovery Rate", value: "Good", sub: "60–72 hrs optimal", pct: 68, color: "card-accent-gold" },
+      { label: "Adaptability", value: "High", sub: "Multi-modal response", pct: 80, color: "card-accent-red" }
+    ],
+    traits: [
+      { name: "Aerobic Capacity", badge: "badge-med", label: "Good" },
+      { name: "Explosive Power", badge: "badge-med", label: "Good" },
+      { name: "Muscle Mass Gain", badge: "badge-med", label: "Moderate" },
+      { name: "Endurance", badge: "badge-med", label: "Good" },
+      { name: "Flexibility", badge: "badge-high", label: "Above Avg" },
+      { name: "Coordination", badge: "badge-high", label: "High" },
+      { name: "Stress Resilience", badge: "badge-med", label: "Good" }
+    ],
+    workout: [
+      { day: "Mon", type: "Strength", cls: "day-strength" },
+      { day: "Tue", type: "Interval Run", cls: "day-cardio" },
+      { day: "Wed", type: "Mobility", cls: "day-flex" },
+      { day: "Thu", type: "Strength", cls: "day-strength" },
+      { day: "Fri", type: "HIIT", cls: "day-hiit" },
+      { day: "Sat", type: "Long Run", cls: "day-cardio" },
+      { day: "Sun", type: "Rest", cls: "day-rest" }
+    ],
+    workoutNote: "Periodized concurrent training — alternating strength and endurance blocks — will maximize your genetic potential. Your 50/50 fiber split means you respond well to both modalities. Implement 3-week mesocycles with deload weeks to capitalize on your good recovery genes.",
+    injuries: [
+      { icon: "🦵", name: "Ankle Sprains", desc: "Proprioception genes are slightly elevated", risk: "med", pct: 44 },
+      { icon: "💪", name: "Muscle Strain", desc: "Eccentric training risk from fiber type balance", risk: "med", pct: 40 },
+      { icon: "🦷", name: "Achilles Tendon", desc: "Moderate collagen synthesis markers", risk: "low", pct: 32 },
+      { icon: "🦴", name: "Bone Stress", desc: "Good bone density — low structural risk", risk: "low", pct: 20 }
+    ],
+    markers: [
+      { gene: "ACTN3", effect: "Mixed power/endurance", allele: "RX genotype" },
+      { gene: "ACE", effect: "Balanced ACE activity", allele: "ID genotype" },
+      { gene: "PPARGC1A", effect: "Moderate mitochondria", allele: "Ser/Gly" },
+      { gene: "IL-6", effect: "Normal inflammatory", allele: "174 G/G" },
+      { gene: "COL5A1", effect: "Good tendon integrity", allele: "TT allele" },
+      { gene: "BDKRB2", effect: "Good exercise response", allele: "+9/+9" }
+    ],
+    metabNote: "Flexible metabolic genotype — your body efficiently switches between fat and carbohydrate oxidation. This means you can use higher-carb approaches around training and lower-carb approaches at rest. Nutrient timing is your greatest lever.",
+    macros: [
+      { label: "Carbs", pct: 40, color: "#C8502A" },
+      { label: "Fat", pct: 30, color: "#B8882A" },
+      { label: "Protein", pct: 30, color: "#3A6B4A" }
+    ],
+    foods: {
+      good: ["Varied whole grains (rice, oats, quinoa)", "Lean proteins + occasional fatty fish", "Colorful vegetables (micronutrients)", "Berries, bananas, sweet potato", "Mixed nuts and seeds"],
+      avoid: ["Ultra-processed foods", "Excessive alcohol (moderate okay)", "Skipping meals pre-workout", "Chronic caloric restriction"]
+    },
+    supps: [
+      { icon: "⚡", name: "Creatine Monohydrate", why: "Universal performance enhancer — works across your balanced fiber type", dose: "5g/day" },
+      { icon: "🐟", name: "Omega-3", why: "Anti-inflammatory support for concurrent training demands", dose: "2g/day" },
+      { icon: "☀️", name: "Vitamin D3", why: "Standard optimization for most genetic profiles in modern environments", dose: "2000 IU" },
+      { icon: "🫐", name: "Ashwagandha", why: "Adaptogen well-matched to your moderate stress resilience score", dose: "600mg" },
+      { icon: "🌿", name: "Electrolyte Complex", why: "Balanced sodium/potassium/magnesium for mixed training volume", dose: "Per workout" }
+    ]
+  },
+
+  "sprinter": {
+    name: "Speed & Power Sprinter",
+    id: "DNA-SP-9901",
+    score: 89,
+    grade: "Elite Speed",
+    scoreNote: "Rare combination of ACTN3 R577X power allele with high ACE D-allele frequency. Your profile closely matches elite sprinters in genetic databases. Explosive neuromuscular potential is exceptional.",
+    overview: [
+      { label: "Metabolism Type", value: "Glycolytic", sub: "Fast ATP regeneration", pct: 94, color: "card-accent-red" },
+      { label: "Muscle Fiber", value: "Type IIb (88%)", sub: "Explosive fast-twitch", pct: 88, color: "card-accent-green" },
+      { label: "Recovery Rate", value: "Very Fast", sub: "36–48 hrs optimal", pct: 88, color: "card-accent-blue" },
+      { label: "Sprint Potential", value: "Elite Tier", sub: "Top 4% genetically", pct: 94, color: "card-accent-gold" }
+    ],
+    traits: [
+      { name: "Sprint Speed", badge: "badge-high", label: "Elite" },
+      { name: "Explosive Jump Power", badge: "badge-high", label: "Very High" },
+      { name: "Reaction Time", badge: "badge-high", label: "Fast" },
+      { name: "Acceleration", badge: "badge-high", label: "Exceptional" },
+      { name: "Aerobic Endurance", badge: "badge-low", label: "Low" },
+      { name: "Sustained Power", badge: "badge-med", label: "Moderate" },
+      { name: "Neuromuscular Efficiency", badge: "badge-high", label: "Very High" }
+    ],
+    workout: [
+      { day: "Mon", type: "Sprint Work", cls: "day-hiit" },
+      { day: "Tue", type: "Heavy Lifts", cls: "day-strength" },
+      { day: "Wed", type: "Rest", cls: "day-rest" },
+      { day: "Thu", type: "Plyometrics", cls: "day-hiit" },
+      { day: "Fri", type: "Power Lifts", cls: "day-strength" },
+      { day: "Sat", type: "Sprint + Agility", cls: "day-hiit" },
+      { day: "Sun", type: "Full Rest", cls: "day-rest" }
+    ],
+    workoutNote: "Maximal neuromuscular activation is your priority. Short, ultra-intense sessions (30–45 min) outperform longer moderate ones. Pair sprint sessions with Olympic lifts and plyometrics. Your CNS is a primary genetic asset — manage fatigue carefully and never sprint at less than 95% effort.",
+    injuries: [
+      { icon: "🦵", name: "Hamstring Tears", desc: "Highest risk for fast-twitch dominant athletes — critical to address", risk: "high", pct: 82 },
+      { icon: "🦷", name: "Achilles Rupture", desc: "Explosive load from Type IIb activity profile", risk: "high", pct: 65 },
+      { icon: "💪", name: "Muscle Pulls", desc: "High force velocities in training and competition", risk: "med", pct: 55 },
+      { icon: "🦴", name: "Ankle Sprains", desc: "High-speed direction changes — footwear matters", risk: "low", pct: 30 }
+    ],
+    markers: [
+      { gene: "ACTN3", effect: "Extreme power genotype", allele: "RR genotype" },
+      { gene: "ACE", effect: "High ACE-D power allele", allele: "DD genotype" },
+      { gene: "AMPD1", effect: "Maximal ATP burst", allele: "Gln12Ter" },
+      { gene: "NOS3", effect: "High NO production", allele: "Glu298Asp" },
+      { gene: "COL3A1", effect: "Connective tissue risk", allele: "2209 G>A" },
+      { gene: "AGT", effect: "Muscle power signaling", allele: "Met235Thr" }
+    ],
+    metabNote: "Your AMPD1 and glycolytic enzyme variants create exceptional short-duration power output but inefficient aerobic metabolism. Carbohydrate availability is critical for sprint performance — strategic carb loading before sessions is essential.",
+    macros: [
+      { label: "Carbs", pct: 50, color: "#C8502A" },
+      { label: "Fat", pct: 20, color: "#B8882A" },
+      { label: "Protein", pct: 30, color: "#3A6B4A" }
+    ],
+    foods: {
+      good: ["White rice, pasta (peri-training)", "Lean red meat, chicken (fast proteins)", "Beetroot juice (NO production)", "Cherries, blueberries (recovery)", "Eggs (choline for neuromuscular)"],
+      avoid: ["High-fat pre-workout meals", "High-fiber right before sprints", "Caffeinated diuretics (sodium loss)", "Chronic caloric deficit (power drops)"]
+    },
+    supps: [
+      { icon: "🌱", name: "Creatine Monohydrate", why: "Unmatched for your AMPD1 genotype — maximizes phosphocreatine resynthesis", dose: "5g/day" },
+      { icon: "🫐", name: "Beta-Alanine", why: "Extends your glycolytic capacity — perfect for 100–400m phenotype", dose: "4.8g/day" },
+      { icon: "🥤", name: "Citrulline Malate", why: "NOS3 variant benefits from external NO donors — pre-workout power", dose: "8g pre-workout" },
+      { icon: "🍒", name: "Tart Cherry Extract", why: "Accelerates muscle recovery for your COL3A1 connective tissue risk", dose: "480mg" },
+      { icon: "☕", name: "Caffeine", why: "Adenosine blocker — synergizes with your AMPD1 ATP system", dose: "3–6mg/kg" }
+    ]
+  }
+};
+
+// ─── FILE MAPPING ────────────────────────────────────────────────────────────
+// Maps filename keywords to profile types
+function detectProfile(filename) {
+  const fn = filename.toLowerCase();
+  if (fn.includes("endurance") || fn.includes("marathon") || fn.includes("long")) return "endurance_athlete";
+  if (fn.includes("power") || fn.includes("strength") || fn.includes("lift")) return "power_lifter";
+  if (fn.includes("metabolic") || fn.includes("syndrome") || fn.includes("risk")) return "metabolic_syndrome";
+  if (fn.includes("sprint") || fn.includes("speed") || fn.includes("fast")) return "sprinter";
+  if (fn.includes("balanced") || fn.includes("athlete") || fn.includes("mixed")) return "balanced_athlete";
+
+  // Fallback: pick based on simple hash of filename
+  const keys = Object.keys(PROFILES);
+  let hash = 0;
+  for (let c of filename) hash += c.charCodeAt(0);
+  return keys[hash % keys.length];
+}
+
+// ─── FILE HANDLING ───────────────────────────────────────────────────────────
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+let selectedProfile = null;
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) handleFile(e.target.files[0]);
+});
+
+function handleFile(file) {
+  const key = detectProfile(file.name);
+  selectedProfile = PROFILES[key];
+
+  document.getElementById('fileLoaded').style.display = 'flex';
+  document.getElementById('fileLoadedName').textContent = file.name + ' — ' + selectedProfile.name;
+  document.getElementById('analyzeBtn').style.display = 'block';
+}
+
+// ─── ANALYSIS FLOW ───────────────────────────────────────────────────────────
+function startAnalysis() {
+  document.getElementById('uploadSection').style.display = 'none';
+  document.getElementById('loadingSection').style.display = 'block';
+
+  const steps = ['step1','step2','step3','step4','step5','step6'];
+  let i = 0;
+
+  function nextStep() {
+    if (i > 0) { document.getElementById(steps[i-1]).className = 'step-dot done'; }
+    if (i < steps.length) {
+      document.getElementById(steps[i]).className = 'step-dot active';
+      i++;
+      setTimeout(nextStep, 600 + Math.random() * 400);
+    } else {
+      setTimeout(showResults, 500);
+    }
+  }
+  nextStep();
+}
+
+// ─── RENDER RESULTS ──────────────────────────────────────────────────────────
+function showResults() {
+  document.getElementById('loadingSection').style.display = 'none';
+  document.getElementById('resultsSection').style.display = 'block';
+
+  const p = selectedProfile;
+
+  document.getElementById('profileName').textContent = p.name;
+  document.getElementById('profileId').textContent = 'DNA-ID: ' + p.id;
+
+  renderOverview(p);
+  renderTraits(p);
+  renderWorkout(p);
+  renderInjuries(p);
+  renderScore(p);
+  renderMarkers(p);
+  renderNutrition(p);
+  renderSupplements(p);
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderOverview(p) {
+  const el = document.getElementById('geneOverview');
+  el.innerHTML = p.overview.map(c => `
+    <div class="gene-card ${c.color}">
+      <div class="gene-card-label">${c.label}</div>
+      <div class="gene-card-value">${c.value}</div>
+      <div class="gene-card-sub">${c.sub}</div>
+      <div class="gene-card-bar"><div class="gene-card-bar-fill" style="width:0%" data-pct="${c.pct}"></div></div>
+    </div>
+  `).join('');
+  setTimeout(() => {
+    el.querySelectorAll('.gene-card-bar-fill').forEach(b => b.style.width = b.dataset.pct + '%');
+  }, 100);
+}
+
+function renderTraits(p) {
+  document.getElementById('traitsList').innerHTML = p.traits.map(t => `
+    <div class="trait-row">
+      <span class="trait-name">${t.name}</span>
+      <span class="trait-badge ${t.badge}">${t.label}</span>
+    </div>
+  `).join('');
+}
+
+function renderWorkout(p) {
+  document.getElementById('workoutGrid').innerHTML = p.workout.map(d => `
+    <div class="day-block ${d.cls}">
+      <div class="day-label">${d.day}</div>
+      <div class="day-type">${d.type}</div>
+    </div>
+  `).join('');
+  document.getElementById('workoutNote').textContent = p.workoutNote;
+}
+
+function renderInjuries(p) {
+  document.getElementById('injuryList').innerHTML = p.injuries.map(i => `
+    <div class="risk-row risk-${i.risk}">
+      <div class="risk-icon">${i.icon}</div>
+      <div class="risk-info">
+        <div class="risk-name">${i.name}</div>
+        <div class="risk-desc">${i.desc}</div>
+      </div>
+      <div class="risk-meter"><div class="risk-fill" style="width:0%" data-pct="${i.pct}"></div></div>
+    </div>
+  `).join('');
+  setTimeout(() => {
+    document.querySelectorAll('.risk-fill').forEach(f => f.style.width = f.dataset.pct + '%');
+  }, 300);
+}
+
+function renderScore(p) {
+  document.getElementById('scoreBig').textContent = p.score;
+  document.getElementById('scoreGrade').textContent = p.grade;
+  document.getElementById('scoreNote').textContent = p.scoreNote;
+
+  const arc = document.getElementById('scoreArc');
+  const circumference = 238.76;
+  const offset = circumference - (p.score / 100) * circumference;
+
+  const scoreColor = p.score >= 80 ? 'var(--green)' : p.score >= 65 ? 'var(--gold)' : 'var(--accent)';
+  arc.style.stroke = scoreColor;
+  document.getElementById('scoreGrade').style.color = scoreColor;
+
+  setTimeout(() => { arc.style.strokeDashoffset = offset; }, 300);
+}
+
+function renderMarkers(p) {
+  document.getElementById('markerGrid').innerHTML = p.markers.map(m => `
+    <div class="marker-chip">
+      <div class="marker-gene">${m.gene}</div>
+      <div class="marker-effect">${m.effect}</div>
+      <div class="marker-allele">${m.allele}</div>
+    </div>
+  `).join('');
+}
+
+function renderNutrition(p) {
+  document.getElementById('metabNote').textContent = p.metabNote;
+
+  const colors = { Carbs: '#C8502A', Fat: '#B8882A', Protein: '#3A6B4A' };
+  document.getElementById('macroChart').innerHTML = p.macros.map(m => `
+    <div class="macro-bar" style="width:0%;background:${m.color}" data-pct="${m.pct}">${m.pct > 15 ? m.label : ''}</div>
+  `).join('');
+
+  document.getElementById('macroLegend').innerHTML = p.macros.map(m => `
+    <div class="macro-item">
+      <div class="macro-dot" style="background:${m.color}"></div>
+      <span>${m.label}</span>
+      <span class="macro-pct">${m.pct}%</span>
+    </div>
+  `).join('');
+
+  setTimeout(() => {
+    document.querySelectorAll('.macro-bar').forEach(b => b.style.width = b.dataset.pct + '%');
+  }, 400);
+
+  document.getElementById('foodGrid').innerHTML = `
+    <div class="food-category">
+      <div class="food-cat-title green">✓ Optimize For</div>
+      <ul class="food-list">${p.foods.good.map(f => `<li>${f}</li>`).join('')}</ul>
+    </div>
+    <div class="food-category">
+      <div class="food-cat-title red">✗ Minimize / Avoid</div>
+      <ul class="food-list">${p.foods.avoid.map(f => `<li>${f}</li>`).join('')}</ul>
+    </div>
+  `;
+}
+
+function renderSupplements(p) {
+  document.getElementById('suppList').innerHTML = p.supps.map(s => `
+    <li class="supp-row">
+      <div class="supp-icon">${s.icon}</div>
+      <div>
+        <div class="supp-name">${s.name}</div>
+        <div class="supp-why">${s.why}</div>
+      </div>
+      <div class="supp-dose">${s.dose}</div>
+    </li>
+  `).join('');
+}
+
+function resetApp() {
+  document.getElementById('resultsSection').style.display = 'none';
+  document.getElementById('uploadSection').style.display = 'block';
+  document.getElementById('fileLoaded').style.display = 'none';
+  document.getElementById('analyzeBtn').style.display = 'none';
+  fileInput.value = '';
+  selectedProfile = null;
+  // Reset loading steps
+  for (let i = 1; i <= 6; i++) {
+    document.getElementById('step' + i).className = 'step-dot';
+  }
+}
+</script>
+</body>
+</html>
